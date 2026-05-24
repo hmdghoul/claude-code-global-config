@@ -21,7 +21,7 @@ A curated, production-ready global `CLAUDE.md` configuration for [Claude Code](h
 git clone https://github.com/hmdghoul/claude-code-global-config.git ~/.claude
 
 # Or just copy the CLAUDE.md
-curl -o ~/.claude/CLAUDE.md https://raw.githubusercontent.com/hmdghoul/claude-code-global-config/main/CLAUDE.md
+curl -o ~/.claude/CLAUDE.md https://raw.githubusercontent.com/hmdghoul/claude-code-global-config/master/CLAUDE.md
 ```
 
 ## Resources
