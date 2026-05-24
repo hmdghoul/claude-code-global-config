@@ -4,5 +4,7 @@
 # Except these files
 !.gitignore
 !CLAUDE.md
+!settings.json
+!statusline.ps1
 !README.md
 !LICENSE
