@@ -18,10 +18,10 @@ A curated, production-ready global `CLAUDE.md` configuration for [Claude Code](h
 
 ```bash
 # Clone to your .claude folder
-git clone https://github.com/coelhoxyz/claude-code-global-config.git ~/.claude
+git clone https://github.com/hmdghoul/claude-code-global-config.git ~/.claude
 
 # Or just copy the CLAUDE.md
-curl -o ~/.claude/CLAUDE.md https://raw.githubusercontent.com/coelhoxyz/claude-code-global-config/main/CLAUDE.md
+curl -o ~/.claude/CLAUDE.md https://raw.githubusercontent.com/hmdghoul/claude-code-global-config/main/CLAUDE.md
 ```
 
 ## Resources
