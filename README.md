@@ -16,10 +16,14 @@ The `.gitignore` ignores everything in `~/.claude/` and then un-ignores just the
 
 ## Setup (Windows)
 
+### Windows PowerShell
+
 ```powershell
-# If ~/.claude/ already has content, back it up first.
-git clone https://github.com/hmdghoul/claude-code-global-config.git $env:USERPROFILE\.claude
+# Clone to a temporary folder, copy everything into .claude, then remove the temporary folder
+$tmp = Join-Path $env:TEMP ("claude-config-" + [guid]::NewGuid()); git clone https://github.com/hmdghoul/claude-code-global-config.git $tmp; robocopy $tmp "$env:USERPROFILE\.claude" /E; Remove-Item $tmp -Recurse -Force
 ```
+
+This copies the full repository into your `.claude` folder, including the hidden `.git` folder.
 
 ## References
 
