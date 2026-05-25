@@ -1,35 +1,31 @@
-# Claude Code Global Config Template
+# Claude Code Global Config
 
-A curated, production-ready global `CLAUDE.md` configuration for [Claude Code](https://claude.ai/code) - Anthropic's official AI coding assistant CLI.
+My global `~/.claude/` config for [Claude Code](https://claude.ai/code), version-controlled so it stays in sync across machines.
 
-## What is CLAUDE.md?
+## Contents
 
-`CLAUDE.md` is a configuration file that Claude Code automatically loads into every conversation. It provides persistent context about your coding standards, workflow preferences, and project conventions.
+| File             | Purpose                                                |
+| ---------------- | ------------------------------------------------------ |
+| `CLAUDE.md`      | Global rules loaded into every Claude Code session     |
+| `settings.json`  | Claude Code settings — model, plugins, status line     |
+| `statusline.ps1` | PowerShell script that renders the status line         |
+| `.gitignore`     | Allowlist — tracks only the files above                |
+| `LICENSE`        | MIT                                                    |
 
-**Global config location:** `~/.claude/CLAUDE.md`
+The `.gitignore` ignores everything in `~/.claude/` and then un-ignores just the files above. Local state (`projects/`, `plugins/`, logs, caches) stays untracked.
 
-## Features
+## Setup (Windows)
 
-- **Smart workflow** - explore before implementing, plan before coding
-- **Git best practices** - clear commits, no credential leaks
-- **Readability first** - clarity over cleverness
-
-## Quick Start
-
-```bash
-# Clone to your .claude folder
-git clone https://github.com/hmdghoul/claude-code-global-config.git ~/.claude
-
-# Or just copy the CLAUDE.md
-curl -o ~/.claude/CLAUDE.md https://raw.githubusercontent.com/hmdghoul/claude-code-global-config/master/CLAUDE.md
+```powershell
+# If ~/.claude/ already has content, back it up first.
+git clone https://github.com/hmdghoul/claude-code-global-config.git $env:USERPROFILE\.claude
 ```
 
-## Resources
+## References
 
-- [Claude Code Best Practices - Anthropic](https://www.anthropic.com/engineering/claude-code-best-practices)
-- [Using CLAUDE.MD Files - Official Guide](https://claude.com/blog/using-claude-md-files)
-- [Claude Code Documentation](https://docs.anthropic.com/claude-code)
+- [Claude Code docs](https://docs.anthropic.com/claude-code)
+- [Claude Code best practices](https://www.anthropic.com/engineering/claude-code-best-practices)
 
 ## License
 
-MIT - Use freely, customize endlessly.
+MIT
