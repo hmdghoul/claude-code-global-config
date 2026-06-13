@@ -8,3 +8,8 @@
 !statusline.ps1
 !README.md
 !LICENSE
+
+!commands/
+!commands/*
+!skills/
+!skills/*
