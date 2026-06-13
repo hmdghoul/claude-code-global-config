@@ -1,7 +1,10 @@
 ---
+name: explain-changes
+description: Analyze git diff and create a beginner-friendly changelog
+---
+
 ## Current changes
 "!`git diff HEAD`"
----
 
 Analyze the git diff shown above. 
 
