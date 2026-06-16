@@ -1,9 +1,12 @@
 {
+  "env": {
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
+  },
   "permissions": {
     "allow": [],
     "additionalDirectories": []
   },
-  "model": "opusplan",
+  "defaultShell": "powershell",
   "statusLine": {
     "type": "command",
     "command": "powershell -NoProfile -ExecutionPolicy Bypass -File C:/Users/Ahmad/.claude/statusline.ps1"
@@ -17,8 +20,6 @@
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
   "skipDangerousModePermissionPrompt": true,
-  "defaultShell": "powershell",
-  "env": {
-    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
-  }
+  "theme": "dark",
+  "effortLevel": "xhigh"
 }
