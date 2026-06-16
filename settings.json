@@ -16,5 +16,9 @@
   "extraKnownMarketplaces": {},
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "defaultShell": "powershell",
+  "env": {
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
+  }
 }
