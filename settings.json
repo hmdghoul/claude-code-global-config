@@ -3,8 +3,10 @@
     "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
   },
   "permissions": {
-    "allow": [],
-    "additionalDirectories": []
+    "defaultMode": "bypassPermissions",
+    "additionalDirectories": [
+      ".."
+    ]
   },
   "defaultShell": "powershell",
   "statusLine": {
@@ -17,9 +19,11 @@
     "gopls-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {},
+  "effortLevel": "xhigh",
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
-  "effortLevel": "xhigh"
+  "autoCompactEnabled": true,
+  "remoteControlAtStartup": true
 }
