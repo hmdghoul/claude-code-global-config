@@ -21,9 +21,9 @@
   "extraKnownMarketplaces": {},
   "effortLevel": "xhigh",
   "awaySummaryEnabled": false,
-  "autoUpdatesChannel": "latest",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
   "autoCompactEnabled": true,
-  "remoteControlAtStartup": true
+  "remoteControlAtStartup": true,
+  "autoUpdatesChannel": "latest"
 }
