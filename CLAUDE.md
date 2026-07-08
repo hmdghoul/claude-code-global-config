@@ -22,6 +22,8 @@
 - Do not add Claude/AI co-authorship to commits, PRs, or related artifacts.
 - Never commit secrets.
 - Exception — memory repos: committing inside `projects/*/memory` git repos is pre-authorized; commit there per the *Memory Repos* section. This does NOT extend to pushing or to the `.claude` repo itself.
+- When indicating where a change, comment, or fix belongs, always reference the git **branch** — never look up or cite a GitHub PR (no `gh pr ...`, no PR numbers/links). The user maps branch → PR themselves.
+- When asked for a commit message, always provide TWO versions: a one-liner  and the normal version. Do not make me ask for the other.
 
 ## Memory Repos
 - Memory lives under `~/.claude` (resolves to each machine's home dir): each per-project memory folder is at `~/.claude/projects/<project>/memory/` (do not guess the location). Each is its own standalone git repo (NOT a submodule). The `.claude` repo does not track them (`projects/` is gitignored), so they never reach the main repo or its remote.

@@ -14,16 +14,26 @@
     "command": "powershell -NoProfile -ExecutionPolicy Bypass -File C:/Users/Ahmad/.claude/statusline.ps1"
   },
   "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true,
     "csharp-lsp@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": true,
+    "ponytail@ponytail": true
   },
-  "extraKnownMarketplaces": {},
+  "extraKnownMarketplaces": {
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      },
+      "autoUpdate": true
+    }
+  },
   "effortLevel": "xhigh",
   "awaySummaryEnabled": false,
+  "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
   "autoCompactEnabled": true,
   "remoteControlAtStartup": true,
-  "autoUpdatesChannel": "latest"
+  "agentPushNotifEnabled": true
 }
