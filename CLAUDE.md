@@ -31,6 +31,7 @@
 - New project's first memory write: `git init -b master` the folder first. Never push.
 
 ## Code
+- Always match the app's established standard over your own defaults. Before writing or changing code, check how the codebase already does it (nearest sibling component, shared idiom) and follow that — serving/endpoint style (e.g. Elide resource vs custom controller), pagination base, naming, error handling, framework patterns. Never introduce a divergent pattern when an established one exists; when several conventions coexist, match the closest sibling.
 - Readability over cleverness.
 - Prefer explicit logic over implicit behavior.
 - No comments unless the WHY is non-obvious (hidden constraint, subtle invariant, workaround). Never explain WHAT the code does.

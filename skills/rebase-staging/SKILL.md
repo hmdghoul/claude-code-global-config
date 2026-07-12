@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 Rebase the current branch onto the latest remote `staging`, then force-push it
 safely with `--force-with-lease`. Invoking this skill is the user's approval to
-run the whole flow — fetch, rebase, and force-push — without pausing to confirm.
+run the whole flow — fetch, pull the current branch, rebase, and force-push — without pausing to confirm.
 If a step fails in a way it does not tell you how to handle, stop and report it; do not improvise.
 
 1. Determine the current branch:
@@ -33,7 +33,20 @@ If a step fails in a way it does not tell you how to handle, stop and report it;
    git fetch origin staging
    ```
 
-4. Rebase the current branch onto it:
+4. Sync the current branch with its own remote first, so any remote-only
+   commits are included locally before the rebase — otherwise the later force-push is rejected with
+   `stale info`:
+
+   ```bash
+   git pull --ff-only
+   ```
+
+   Use `--ff-only` so this never silently creates a merge commit. If the branch
+   has no upstream yet (never pushed), this errors harmlessly — skip it and
+   continue. If it fails because local and remote have genuinely diverged
+   (can't fast-forward), stop and report — do not force anything.
+
+5. Rebase the current branch onto it:
 
    ```bash
    git rebase origin/staging
@@ -46,7 +59,7 @@ If a step fails in a way it does not tell you how to handle, stop and report it;
    Repeat until the rebase finishes. Only abort (`git rebase --abort`) as a last resort,
    when a conflict genuinely cannot be resolved safely — then stop and report what blocked it.
 
-5. Force-push the rebased branch safely:
+6. Force-push the rebased branch safely:
 
    ```bash
    git push --force-with-lease
