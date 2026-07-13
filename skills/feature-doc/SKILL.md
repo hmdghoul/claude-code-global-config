@@ -45,6 +45,7 @@ Invoked as `/feature-doc [format] [ticket text...]`. All optional:
   - **What shipped**: the concrete capabilities — endpoints/actions, recorded data, detection/automation, guardrails. Each tied to code.
   - **Data**: new tables/columns/models the change introduces or exposes.
   - **Safeguards**: transactional boundaries, best-effort/isolation, validation, attribution — anything that protects correctness.
+  - **Requirement coverage**: when a ticket was fetched, walk every acceptance criterion and explicit requirement (incl. schema/constraint details, DoD checkboxes, "must" statements) and mark each **met / partially met / not met**, grounded in the diff. The partial + not-met ones are the input to the "Requirements not yet met" section (Step 3), and usually also feed Future work. Skip this map only when intent was inferred (no ticket) — there is nothing authoritative to check against.
   - **Future work — only from real signals**: acceptance criteria in the ticket not yet met by the code, `TODO`/`FIXME` in the diff, deferred or stubbed paths, an obvious counterpart (e.g. a backend change whose UI lives elsewhere), and known gaps/tradeoffs noted in comments or that you can substantiate from the code. Classify each as Planned vs Proposed.
 - For a large or subtle diff, consider fanning out with the Agent/Workflow tools (one reader per subsystem or per requirement, adversarially verifying findings) before writing — but keep the doc's claims to what you verified.
 
@@ -55,6 +56,7 @@ Invoked as `/feature-doc [format] [ticket text...]`. All optional:
 - How it works (OPTIONAL) → include a flow only if there is a real mechanism; otherwise omit.
 - Data captured (OPTIONAL) → include only if the change adds/exposes a record.
 - Safeguards (OPTIONAL) → include only if the change builds in real guardrails.
+- Requirements not yet met (OPTIONAL) → include **only** when a ticket was fetched **and** some of its acceptance criteria / requirements are not fully satisfied by the diff. List each unmet or partially-met requirement in the ticket's terms and state plainly what the code does or doesn't do. Omit entirely when every requirement is met, or when intent was inferred (no ticket). Do not pad with met requirements — this section is the gaps only. It states the divergence factually; Future implementation says what to do about it, so don't duplicate wording between them.
 - Future implementation → grounded next steps, each labeled Planned or Proposed.
 
 Omit any optional section that would be padding. An honest short doc beats a padded one.
@@ -103,6 +105,10 @@ If `format` was passed, use it. Otherwise ask with AskUserQuestion:
 
 ### Safeguards  <!-- optional -->
 - **<lead>** — <body>
+
+## Requirements not yet met  <!-- optional: only when a ticket was fetched AND not all its requirements are met; omit if all met or no ticket -->
+- **<unmet requirement / acceptance criterion, in the ticket's terms>** — <what the diff does instead / what's missing>
+- **<partially-met requirement>** — Partially met: <what's covered vs what's not>
 
 ## Future implementation
 - **[Planned] <next step>** — <why / what it unblocks>
