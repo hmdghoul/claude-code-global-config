@@ -1,0 +1,369 @@
+<title>{{FEATURE_NAME}} — Feature Overview</title>
+<!--
+  feature-doc template. Copy this file to the scratchpad, then replace every {{PLACEHOLDER}}
+  and fill the repeatable blocks with REAL, code-grounded content. Rules:
+  - Keep the entire <style> block unchanged (proven, theme-aware, responsive).
+  - Every claim must trace to the branch diff or code. Do not invent requirements, dates, or metrics.
+  - Status pills are honest: .shipped only for what is implemented on the branch; .planned for the
+    clearly-committed next step; .proposed for review-surfaced opportunities (mark, don't assert).
+  - OPTIONAL sections (mechanism flow, compare, data table, safeguards) — DELETE the whole <section>
+    if the change has no such thing. Do not pad. An empty diagram is worse than no diagram.
+-->
+<style>
+  :root {
+    --paper: #FCFCFD;
+    --surface: #FFFFFF;
+    --surface-2: #F3F5F8;
+    --ink: #17212E;
+    --ink-soft: #48586B;
+    --ink-faint: #7C8896;
+    --line: #E3E8EF;
+    --line-strong: #CFD7E1;
+    --accent: #0F7C87;
+    --accent-strong: #0B5A63;
+    --accent-tint: #E2F0F1;
+    --warn: #A85E14;
+    --warn-tint: #F8EAD6;
+    --good: #2C7A4E;
+    --good-tint: #E0EEE5;
+
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Consolas, "Liberation Mono", monospace;
+
+    --measure: 92rem;
+    --step--1: 0.8125rem;
+    --step-0: 1.0625rem;
+    --step-1: 1.22rem;
+    --step-2: 1.62rem;
+    --step-3: 2.05rem;
+    --step-4: 2.7rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0E141C;
+      --surface: #141C26;
+      --surface-2: #1A2430;
+      --ink: #E7ECF2;
+      --ink-soft: #A6B2C0;
+      --ink-faint: #74828F;
+      --line: #263140;
+      --line-strong: #33404F;
+      --accent: #35AEB8;
+      --accent-strong: #5EC8D0;
+      --accent-tint: #103139;
+      --warn: #DE9243;
+      --warn-tint: #33260F;
+      --good: #57AE79;
+      --good-tint: #16301F;
+    }
+  }
+
+  :root[data-theme="light"] {
+    --paper: #FCFCFD; --surface: #FFFFFF; --surface-2: #F3F5F8;
+    --ink: #17212E; --ink-soft: #48586B; --ink-faint: #7C8896;
+    --line: #E3E8EF; --line-strong: #CFD7E1;
+    --accent: #0F7C87; --accent-strong: #0B5A63; --accent-tint: #E2F0F1;
+    --warn: #A85E14; --warn-tint: #F8EAD6; --good: #2C7A4E; --good-tint: #E0EEE5;
+  }
+  :root[data-theme="dark"] {
+    --paper: #0E141C; --surface: #141C26; --surface-2: #1A2430;
+    --ink: #E7ECF2; --ink-soft: #A6B2C0; --ink-faint: #74828F;
+    --line: #263140; --line-strong: #33404F;
+    --accent: #35AEB8; --accent-strong: #5EC8D0; --accent-tint: #103139;
+    --warn: #DE9243; --warn-tint: #33260F; --good: #57AE79; --good-tint: #16301F;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--step-0);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: var(--measure); margin: 0 auto; padding: 0 1.5rem 6rem; }
+
+  .page-enter { animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .page-enter { animation: none; } }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: var(--step--1); letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--accent-strong); font-weight: 600;
+  }
+
+  header.mast {
+    border-bottom: 1px solid var(--line);
+    background: radial-gradient(120% 140% at 100% 0%, var(--accent-tint) 0%, transparent 55%);
+  }
+  .mast-inner { max-width: var(--measure); margin: 0 auto; padding: 3.4rem 1.5rem 2.6rem; }
+  h1 {
+    font-size: var(--step-4); line-height: 1.04; letter-spacing: -0.022em;
+    font-weight: 700; text-wrap: balance; margin: 0.7rem 0 0.5rem;
+  }
+  .lede { font-size: var(--step-1); color: var(--ink-soft); max-width: 34rem; margin: 0; text-wrap: pretty; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.6rem; }
+  .meta {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 0.32rem 0.6rem; border-radius: 999px; border: 1px solid var(--line-strong);
+    color: var(--ink-soft); background: var(--surface); display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .dot.good { background: var(--good); }
+  .dot.acc { background: var(--accent); }
+  .dot.warn { background: var(--warn); }
+
+  section { margin-top: 3.6rem; }
+  h2 { font-size: var(--step-3); line-height: 1.1; letter-spacing: -0.018em; font-weight: 700; margin: 0.5rem 0 0; text-wrap: balance; }
+  h3 { font-size: var(--step-1); font-weight: 650; letter-spacing: -0.01em; margin: 2.2rem 0 0.4rem; }
+  p { margin: 0.9rem 0; }
+  p .term { font-weight: 650; color: var(--ink); border-bottom: 2px solid var(--accent-tint); }
+  code.k {
+    font-family: var(--mono); font-size: 0.86em; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 5px; padding: 0.08em 0.38em; color: var(--ink);
+  }
+  .rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 0.55rem; margin: 1.4rem 0 0; }
+  .pill {
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase;
+    font-weight: 600; padding: 0.28rem 0.6rem; border-radius: 6px; display: inline-flex;
+    align-items: center; gap: 0.42rem; white-space: nowrap;
+  }
+  .pill.shipped { color: var(--good); background: var(--good-tint); border: 1px solid color-mix(in srgb, var(--good) 30%, transparent); }
+  .pill.planned { color: var(--accent-strong); background: var(--accent-tint); border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent); }
+  .pill.proposed { color: var(--warn); background: var(--warn-tint); border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent); }
+
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9rem; margin-top: 1.6rem; }
+  @media (max-width: 620px) { .cards { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 1.15rem 1.2rem 1.25rem; display: flex; flex-direction: column; gap: 0.5rem;
+    transition: border-color 0.18s ease, transform 0.18s ease;
+  }
+  .card:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+  .card .top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .card .num { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; color: var(--ink-faint); }
+  .card h4 { margin: 0; font-size: 1.05rem; font-weight: 650; letter-spacing: -0.01em; }
+  .card p { margin: 0; font-size: 0.95rem; color: var(--ink-soft); line-height: 1.55; }
+
+  .flow-scroll { overflow-x: auto; margin: 1.6rem -0.2rem 0; padding: 0.2rem; }
+  .flow { display: flex; align-items: stretch; gap: 0.5rem; min-width: max-content; }
+  .node {
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px;
+    padding: 0.7rem 0.85rem; min-width: 8.5rem; display: flex; flex-direction: column;
+    gap: 0.28rem; justify-content: center;
+  }
+  .node .lbl { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
+  .node .val { font-size: 0.9rem; font-weight: 600; line-height: 1.25; }
+  .node.decide { border-color: var(--accent); background: var(--accent-tint); }
+  .node.flag { border-color: color-mix(in srgb, var(--warn) 55%, var(--line-strong)); background: var(--warn-tint); }
+  .node.resolve { border-color: color-mix(in srgb, var(--good) 55%, var(--line-strong)); background: var(--good-tint); }
+  .arrow { align-self: center; color: var(--ink-faint); font-size: 1.1rem; flex: 0 0 auto; }
+
+  .compare { margin-top: 1.4rem; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .compare-row { display: grid; grid-template-columns: 1fr 1fr; }
+  .compare-cell { padding: 0.95rem 1.1rem; }
+  .compare-cell + .compare-cell { border-left: 1px solid var(--line); }
+  .compare-cell .src { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+  .compare-cell .say { font-size: 1.02rem; font-weight: 650; margin-top: 0.2rem; }
+  .compare-cell.busy .say { color: var(--warn); }
+  .compare-cell.free .say { color: var(--good); }
+  .verdict { border-top: 1px solid var(--line); background: var(--surface-2); padding: 0.8rem 1.1rem; font-size: 0.95rem; color: var(--ink-soft); }
+  .verdict strong { color: var(--ink); }
+
+  .table-scroll { overflow-x: auto; margin-top: 1.5rem; border: 1px solid var(--line); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; min-width: 30rem; font-size: 0.95rem; }
+  thead th {
+    text-align: left; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 600; padding: 0.75rem 1.1rem;
+    background: var(--surface-2); border-bottom: 1px solid var(--line);
+  }
+  tbody td { padding: 0.72rem 1.1rem; border-bottom: 1px solid var(--line); color: var(--ink-soft); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+
+  .callout {
+    margin-top: 1.8rem; border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 10px; background: var(--surface); padding: 1.1rem 1.3rem;
+  }
+  .callout .eyebrow { color: var(--accent-strong); }
+  .callout ul { margin: 0.7rem 0 0; padding-left: 1.1rem; }
+  .callout li { margin: 0.4rem 0; color: var(--ink-soft); font-size: 0.96rem; }
+  .callout li strong { color: var(--ink); font-weight: 650; }
+
+  .road { display: flex; flex-direction: column; gap: 0.7rem; margin-top: 1.6rem; }
+  .road-item {
+    display: grid; grid-template-columns: auto 1fr; gap: 0.9rem 1rem; align-items: start;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.05rem 1.2rem;
+  }
+  .road-item .body h4 { margin: 0.1rem 0 0.3rem; font-size: 1.03rem; font-weight: 650; letter-spacing: -0.01em; }
+  .road-item .body p { margin: 0; font-size: 0.94rem; color: var(--ink-soft); line-height: 1.55; }
+  .road-item .pill { align-self: start; margin-top: 0.15rem; }
+
+  footer {
+    margin-top: 4rem; padding-top: 1.4rem; border-top: 1px solid var(--line); color: var(--ink-faint);
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.04em;
+    display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; justify-content: space-between;
+  }
+</style>
+
+<header class="mast">
+  <div class="mast-inner page-enter">
+    <span class="eyebrow">{{PROJECT}} &middot; {{AREA}} &middot; {{TICKET_OR_BRANCH}}</span>
+    <h1>{{FEATURE_NAME}}</h1>
+    <p class="lede">{{ONE_LINE_SUMMARY}}</p>
+    <div class="meta-row">
+      <!-- One chip per true status. dot classes: good / acc / warn -->
+      <span class="meta"><span class="dot good"></span> {{STATUS_CHIP_1}}</span>
+      <span class="meta"><span class="dot acc"></span> {{STATUS_CHIP_2}}</span>
+      <span class="meta">{{UPDATED_DATE}}</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <span class="eyebrow">The Problem</span>
+    <h2>{{PROBLEM_HEADLINE}}</h2>
+    <!-- 2-3 short paragraphs, plain language, grounded in what the code addresses. Use
+         <span class="term">key term</span> to introduce the domain vocabulary once. -->
+    {{PROBLEM_PARAGRAPHS}}
+  </section>
+
+  <hr class="rule" style="margin-top:2.4rem" />
+
+  <section>
+    <span class="eyebrow">Current Implementation &middot; Shipped</span>
+    <h2>What we built</h2>
+    <p>{{CURRENT_INTRO}}</p>
+
+    <div class="legend" aria-label="Status legend">
+      <span class="pill shipped"><span class="dot good"></span> Shipped</span>
+      <span class="pill planned"><span class="dot acc"></span> Planned</span>
+      <span class="pill proposed"><span class="dot warn"></span> Proposed</span>
+    </div>
+
+    <div class="cards">
+      <!-- One .card per capability actually implemented on this branch. Keep the num tag as a
+           short mono label (e.g. "01 / VISIBILITY"). Pill is nearly always .shipped here. -->
+      <div class="card">
+        <div class="top"><span class="num">{{NN}} / {{TAG}}</span><span class="pill shipped">Shipped</span></div>
+        <h4>{{CAPABILITY_TITLE}}</h4>
+        <p>{{CAPABILITY_DESC}}</p>
+      </div>
+      <!-- ...repeat... -->
+    </div>
+  </section>
+
+  <!-- OPTIONAL: include only if the change has a behavioral mechanism worth showing. Otherwise DELETE. -->
+  <section>
+    <span class="eyebrow">How It Works</span>
+    <h3 style="margin-top:1.2rem">{{MECHANISM_HEADLINE}}</h3>
+    <p>{{MECHANISM_INTRO}}</p>
+
+    <div class="flow-scroll">
+      <div class="flow">
+        <!-- 3-6 nodes. Highlight the decisive one with .decide, a negative outcome with .flag,
+             a positive/terminal one with .resolve. Put &rsaquo; arrows between nodes. -->
+        <div class="node"><span class="lbl">{{STEP_LABEL}}</span><span class="val">{{STEP_VALUE}}</span></div>
+        <span class="arrow">&rsaquo;</span>
+        <div class="node decide"><span class="lbl">{{STEP_LABEL}}</span><span class="val">{{STEP_VALUE}}</span></div>
+        <!-- ...repeat... -->
+      </div>
+    </div>
+
+    <!-- OPTIONAL sub-block: a two-source comparison / contrast. DELETE if not relevant. -->
+    <div class="compare">
+      <div class="compare-row">
+        <div class="compare-cell busy"><span class="src">{{SOURCE_A}}</span><div class="say">{{SAYS_A}}</div></div>
+        <div class="compare-cell free"><span class="src">{{SOURCE_B}}</span><div class="say">{{SAYS_B}}</div></div>
+      </div>
+      <div class="verdict"><strong>{{VERDICT_LEAD}}</strong> {{VERDICT_BODY}}</div>
+    </div>
+  </section>
+
+  <!-- OPTIONAL: what data/records the feature captures or exposes. DELETE if none. -->
+  <section>
+    <span class="eyebrow">{{DATA_EYEBROW}}</span>
+    <h3 style="margin-top:1.2rem">{{DATA_HEADLINE}}</h3>
+    <p>{{DATA_INTRO}}</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>{{COL_1}}</th><th>{{COL_2}}</th></tr></thead>
+        <tbody>
+          <tr><td>{{FIELD}}</td><td>{{MEANING}}</td></tr>
+          <!-- ...repeat... -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- OPTIONAL: guardrails / safeguards the change builds in. DELETE if none. -->
+  <section>
+    <div class="callout">
+      <span class="eyebrow">{{SAFEGUARDS_EYEBROW}}</span>
+      <ul>
+        <li><strong>{{SAFEGUARD_LEAD}}</strong> {{SAFEGUARD_BODY}}</li>
+        <!-- ...repeat... -->
+      </ul>
+    </div>
+  </section>
+
+  <!-- OPTIONAL: requirements the code diff does NOT fully satisfy. Include ONLY when a ticket was
+       fetched AND some of its acceptance criteria / requirements are unmet or partially met. DELETE
+       the whole <section> if every requirement is met, or if there is no ticket (intent inferred).
+       Gaps only — do NOT list met requirements. State the divergence factually here; the Future
+       section says what to do about it. Warn-toned to read as an honest gap list, not a failure. -->
+  <section>
+    <span class="eyebrow" style="color:var(--warn)">Not Yet Met &middot; Gaps vs {{TICKET_KEY}}</span>
+    <h2>Requirements the code doesn&rsquo;t cover yet</h2>
+    <p>{{GAPS_INTRO}}</p>
+    <div class="callout" style="border-left-color:var(--warn)">
+      <span class="eyebrow" style="color:var(--warn)">{{TICKET_KEY}} &middot; Outstanding</span>
+      <ul>
+        <!-- One <li> per unmet or partially-met ticket requirement / acceptance criterion. Lead with
+             the requirement in the ticket's own terms, then state plainly what the diff does or
+             doesn't do. Tag partials explicitly, e.g. "<strong>...</strong> Partially met — ...". -->
+        <li><strong>{{REQUIREMENT}}</strong> {{GAP_DETAIL}}</li>
+        <!-- ...repeat... -->
+      </ul>
+    </div>
+  </section>
+
+  <hr class="rule" style="margin-top:2.8rem" />
+
+  <section>
+    <span class="eyebrow">Future Implementation</span>
+    <h2>What&rsquo;s next</h2>
+    <p>{{FUTURE_INTRO}}</p>
+
+    <div class="road">
+      <!-- One .road-item per next-step. Pill class = planned (committed next step) or
+           proposed (opportunity surfaced from code/review; not yet committed). Only include
+           items grounded in real signals: TODO/FIXME, deferred paths, obvious counterpart work,
+           known gaps. Do NOT fabricate a roadmap. -->
+      <div class="road-item">
+        <span class="pill planned">Planned</span>
+        <div class="body"><h4>{{NEXT_TITLE}}</h4><p>{{NEXT_DESC}}</p></div>
+      </div>
+      <div class="road-item">
+        <span class="pill proposed">Proposed</span>
+        <div class="body"><h4>{{NEXT_TITLE}}</h4><p>{{NEXT_DESC}}</p></div>
+      </div>
+      <!-- ...repeat... -->
+    </div>
+  </section>
+
+  <footer>
+    <span>{{FEATURE_NAME}} &middot; {{TICKET_OR_BRANCH}}</span>
+    <span>{{PROJECT}} &middot; {{AREA}}</span>
+  </footer>
+
+</div>
