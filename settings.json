@@ -16,7 +16,7 @@
   "enabledPlugins": {
     "csharp-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
-    "ponytail@ponytail": true
+    "kotlin-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ponytail": {
