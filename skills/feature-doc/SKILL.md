@@ -30,7 +30,7 @@ Invoked as `/feature-doc [format] [ticket text...]`. All optional:
 4. Changed files + stats: `git diff --stat origin/<base>...HEAD`.
 5. Commit messages (intent signal): `git log origin/<base>..HEAD --format='%s%n%b'`.
 6. **Get the ticket from Jira (Atlassian MCP).** This is the authoritative statement of intent — get it before writing anything.
-   - Resolve the ticket key, in order: an explicit key argument → the leading `<PROJECT>-<NUMBER>` in the branch (branch `STR-524-Implement-Picker-Metrics` → `STR-524`; regex `^[A-Z][A-Z0-9]+-[0-9]+`).
+   - Resolve the ticket key, in order: an explicit key argument → the first `<PROJECT>-<NUMBER>` in the branch (branch `STR-524-Implement-Picker-Metrics` or `feature/STR-524-...` → `STR-524`; regex `(^|/)[A-Z][A-Z0-9]+-[0-9]+`).
    - **If no key resolves, ask the user for it** with AskUserQuestion — one question offering to supply the Jira ticket key, or **"No ticket — use commits + titles only"**. Do not silently skip Jira. When a key already resolved from the branch or argument, don't ask — just fetch.
    - Fetch with `mcp__atlassian__getJiraIssue`: `issueIdOrKey` = the key, `responseContentFormat: "markdown"`, and `fields` including `description` and `comment` (comments often hold clarifications/scope changes). For `cloudId`, pass the site host if you already know it; otherwise call `mcp__atlassian__getAccessibleAtlassianResources` once to resolve it, then reuse it.
    - Read the summary, description, and acceptance criteria. Use it to frame **The problem** and to separate acceptance criteria that are satisfied by the code (Shipped) from those still outstanding (future work).
