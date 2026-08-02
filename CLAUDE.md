@@ -59,7 +59,6 @@
 - Always brace both branches, even when each is a single expression.
 - Pass arguments positionally; name them only when the language requires it — skipping an optional, passing out of declaration order, or disambiguating an overload.
 - Do not extract a helper used in exactly one place — inline it. For a tiny mutation/stamp block duplicated across sibling methods, keep it inline even at two call sites.
-- Do not add DI or framework machinery where a plain instantiation works.
 - No nullable "only type X has this" columns — generalize the concept so every row has a real value.
 - Fire-and-forget background work must never throw; catch and log only.
 - Durable idempotency needs a persisted marker, not a cache that can evict.
