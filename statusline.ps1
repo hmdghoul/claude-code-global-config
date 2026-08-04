@@ -43,13 +43,16 @@ if ($resetAt) {
 }
 
 $branchName = ""
+$stashText = ""
 try {
     git rev-parse --is-inside-work-tree 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) {
         $branch = (git branch --show-current).Trim()
         if ($branch) { $branchName = " ${CYAN}[$branch]${RESET}" }
+        $stashCount = @(git stash list).Count
+        if ($stashCount -gt 0) { $stashText = " ${YELLOW}stash:${stashCount}${RESET}" }
     }
-} catch { $branchName = "" }
+} catch { $branchName = ""; $stashText = "" }
 
 function Get-PctColor($pct) {
     if ($pct -lt 50) { return $GREEN }
@@ -57,7 +60,7 @@ function Get-PctColor($pct) {
     return $RED
 }
 
-$output = "${BOLD}${GRAY}$folderName${RESET}$branchName"
+$output = "${BOLD}${GRAY}$folderName${RESET}$branchName$stashText"
 
 if ($modelName) {
     $output += " [$modelName]${RESET}"

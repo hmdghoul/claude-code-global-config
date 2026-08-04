@@ -29,6 +29,11 @@
 - If the user does not explicitly confirm, you must NOT proceed.
 - Batch multiple git operations into a single approval request (do not ask repeatedly).
 - Never auto-commit, auto-push, or “helpfully” persist changes without permission.
+- Never rebase, reset, or push onto `staging`, `main`, or `master` — including indirectly, through a branch whose upstream points at one of them.
+- Before any push, read the upstream: `git rev-parse --abbrev-ref '@{upstream}'`. A bare `git push` (with or without `--force-with-lease`) targets that upstream, not a same-named remote branch. If it differs from the current branch name, stop and push explicitly instead: `git push -u origin <branch>`.
+- Exception — the `rebase-staging` skill: its step 6 `git push --force-with-lease` is intentionally bare, and its step 1 gate checks only the local branch name. Invoking that skill is approval for that flow as written; do not add an upstream check or rewrite the push.
+- A rebase or force-push on a branch with zero commits of its own is a no-op at best and a push to the base branch at worst. Check `git log --oneline origin/<base>..HEAD` first; if it is empty, report that and do nothing.
+- Every new branch — one I ask for or one you create — is meant to exist on the remote. Immediately after creating it, ask me to publish it with `git push -u origin <branch>`; that sets its own upstream instead of leaving it inheriting the base branch's. Never leave a new branch local-only without asking.
 - Do not add Claude/AI co-authorship to commits, PRs, or related artifacts.
 - Never commit secrets.
 - Exception — memory repos: committing inside `projects/*/memory` git repos is pre-authorized; commit there per the *Memory Repos* section. This does NOT extend to pushing or to the `.claude` repo itself.
@@ -49,6 +54,7 @@
 - Prefer explicit logic over implicit behavior.
 - No comments unless the WHY is non-obvious (hidden constraint, subtle invariant, workaround). Never explain WHAT the code does.
 - Before writing a comment, first try to make the code say it: rename the symbol to state the invariant (`resolveExistingWalletID`, `ClaimedSourceSystem`), extract a named constant instead of a magic value, or put the fact in the error message where it also reaches logs and callers. A comment is the last resort, not the first.
+- Default to zero comments: write the block comment-free, then add back only the ones whose fact you can name — this external contract, this DB constraint, this JDK/library behaviour. If you cannot name it in one line, the comment is wrong; fix the naming instead. Never hand me a first draft dense with comments and trim it only when asked.
 - Only comment when the WHY genuinely cannot live in code — an external contract, an RFC or spec reference, a cross-service policy, or a DB-level constraint the file cannot see. Keep it to one line placed at the exact spot.
 - When you add or touch a comment, tighten it in the same edit — never restating the code.
 - Never write bookkeeping into code: no ticket references, no `region` markers, no "delete this block to revert" or "deliberate, do not re-flag" notes. That belongs in the commit message, the PR, or memory. Structure is what makes a change revertible, not comments pointing at it.
