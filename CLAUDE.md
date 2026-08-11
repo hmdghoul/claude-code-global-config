@@ -38,6 +38,8 @@
 - Never commit secrets.
 - Exception — memory repos: committing inside `projects/*/memory` git repos is pre-authorized; commit there per the *Memory Repos* section. This does NOT extend to pushing or to the `.claude` repo itself.
 - When indicating where a change, comment, or fix belongs, always reference the git **branch** — never look up or cite a GitHub PR (no `gh pr ...`, no PR numbers/links). The user maps branch → PR themselves.
+- `gh` is read-only. Reading a PR is fine when I ask for output about it — `gh pr view`, `gh pr diff`, `gh pr list`, `gh pr checks`, GET-only `gh api`. Never run a `gh` command that creates or changes anything on GitHub: no `pr create`/`edit`/`comment`/`review`/`merge`/`close`/`ready`/`checkout`, no `release create`, no `issue` writes, no label, assignee, milestone or workflow changes, no non-GET `gh api`. Draft the text and I post it.
+- The read allowance above does not loosen the branch-not-PR rule: keep citing the **branch** when saying where a change belongs, and reach for `gh` only when the PR itself is the subject of what I asked for.
 - When asked for a commit message, always provide TWO versions: a one-liner  and the normal version. Do not make me ask for the other.
 - Issue-tracker writes are manual. Reading tickets is fine; never create, comment, transition, assign, or link. Draft the text for me to paste.
 - A cloud or remote session refines the plan and hands it back for local implementation — it does not open a pull request itself.
@@ -67,6 +69,10 @@
 - Do not extract a helper used in exactly one place — inline it. For a tiny mutation/stamp block duplicated across sibling methods, keep it inline even at two call sites.
 - No nullable "only type X has this" columns — generalize the concept so every row has a real value.
 - Fire-and-forget background work must never throw; catch and log only.
+- Any action that changes data must be logged on both outcomes — success and failure. On success log what changed, how much, and who did it. On failure or rejection log why it was refused, including a validation bail that aborts the mutation before it happens. Log at a level the service actually emits.
+- Never load whole rows for data you immediately discard. If a step needs only ids, one column, or a count, write a projection query that selects exactly that. Loading full entities to keep a single field also drags in every EAGER association, so one call becomes one query per row unless a batch-fetch size is configured — read the entity's associations before assuming a finder costs one query. Add the projection as a new method beside the existing finder and leave that finder untouched for the callers that genuinely need the whole row.
+- Spell joins out and never lean on a cartesian product: write `INNER JOIN` / `LEFT JOIN` naming the association or condition, never a comma-join (`FROM A a, B b WHERE a.x = b.id`) that the planner has to turn back into a join. In an ORM query language a join over a mapped relation already emits the FK condition and is never a cross join — write `INNER JOIN` anyway so the intent is visible to a reviewer instead of resting on a default.
+- Deleting or updating a known set of rows is one statement, not one per row. Prefer a bulk/batch call keyed on `IN (ids)` over iterating; where the ORM offers both an entity-collection and an id-collection batch form, take the id form — the entity form usually expands to an `OR` chain that grows a clause per row. Before switching, confirm nothing depends on per-row lifecycle callbacks or cascades, since bulk statements bypass them.
 - Durable idempotency needs a persisted marker, not a cache that can evict.
 - One changeSet/migration per file. Never edit or delete an already-applied migration — add a new reversing one.
 
