@@ -38,11 +38,14 @@ If a step fails in a way it does not tell you how to handle, stop and report it;
    `stale info`:
 
    ```bash
-   git pull --ff-only
+   git pull --ff-only origin "$(git branch --show-current)"
    ```
 
+   Name the branch explicitly — a bare `git pull` reads the upstream, which may point
+   at `staging`. Not `origin HEAD`: on a pull the refspec resolves on the remote.
+
    Use `--ff-only` so this never silently creates a merge commit. If the branch
-   has no upstream yet (never pushed), this errors harmlessly — skip it and
+   was never pushed, this errors harmlessly — skip it and
    continue. If it fails because local and remote have genuinely diverged
    (can't fast-forward), stop and report — do not force anything.
 
@@ -62,5 +65,8 @@ If a step fails in a way it does not tell you how to handle, stop and report it;
 6. Force-push the rebased branch safely:
 
    ```bash
-   git push --force-with-lease
+   git push --force-with-lease origin HEAD
    ```
+
+   Name the branch explicitly — a bare push targets the upstream, which may point at
+   `staging`. `--force-with-lease` still refuses if the remote moved.

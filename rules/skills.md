@@ -3,13 +3,16 @@
 Applies when running the matching skill or doing that work by hand. The ticket-premise, rebasing, and git-safety rules here do not yield.
 
 ## Ticket investigation
-- Verify a ticket's or bug report's premise against the code before acting on it. If verification refutes it, say so and drop it — do not rewrite its scope to keep it alive.
+- Tickets here are often thin — a title alone, a few lines, or an account of current behaviour that is simply wrong. Verify a ticket's or bug report's premise against the code before acting on it, and trace the affected flow yourself rather than taking the description's word for how things work today.
+- The intended business outcome is the goal, not the ticket's account of the implementation. If the premise is refuted but the outcome is clear, do not drop the ticket: say what the ticket got wrong, what the code actually does, and propose the corrected implementation scope.
+- If that corrected scope materially differs from the work as requested, surface the difference and ask before implementing.
+- If the intended outcome cannot be determined reliably, ask for clarification rather than guessing at it.
 
 ## Commit messages
-- When asked for a commit message, always provide TWO versions: a one-liner  and the normal version. Do not make me ask for the other.
+- When asked for a commit message, always provide TWO versions: a one-liner and the normal version. Do not make me ask for the other.
 
 ## Rebasing
-- Exception — the `rebase-staging` skill: its step 6 `git push --force-with-lease` is intentionally bare, and its step 1 gate checks only the local branch name. Invoking that skill is approval for that flow as written; do not add an upstream check or rewrite the push.
+- Exception — the `rebase-staging` skill: invoking it is approval to run its whole flow (fetch, pull, rebase, force-push) without pausing to confirm each step. That approval covers the flow, not the target: its step 6 pushes explicitly with `git push --force-with-lease origin HEAD`, so the upstream rule in `CLAUDE.md` is satisfied rather than waived. Never rewrite that push to a bare one.
 - A rebase or force-push on a branch with zero commits of its own is a no-op at best and a push to the base branch at worst. Check `git log --oneline origin/<base>..HEAD` first; if it is empty, report that and do nothing.
 
 ## PR review — findings and explanations

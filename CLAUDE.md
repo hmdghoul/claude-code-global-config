@@ -9,11 +9,11 @@ Scope split — the rest of my rules live in `rules/` and are imported here:
 
 ## Rule Precedence
 Rules in `rules/` are defaults, not laws. When one collides with something below, the higher item wins: follow it, and say in one line which default yielded and why. Never yield silently, and never invent a conflict to avoid a rule you dislike.
-1. Ticket requirements and business invariants.
-2. Repository-specific instructions — a repo's own `CLAUDE.md`, its docs, its ADRs.
-3. Established codebase patterns — the nearest sibling's way of doing it.
-4. Framework and language correctness — where an idiom exists because the compiler, ORM, broker, or runtime needs it.
-5. Evidence from the affected flow — what the code demonstrably does at runtime beats what a rule assumes.
+1. Business requirements and invariants — the outcome the system must achieve, including what a ticket asks for. A ticket's premise is not one of these: it is a claim about how the system behaves today, and it yields to item 3. A refuted premise does not take the outcome with it.
+2. Framework and language correctness — where an idiom exists because the compiler, ORM, broker, or runtime needs it. This constrains every implementation, including one a ticket proposes.
+3. Evidence from the affected flow — what the code demonstrably does at runtime beats what a rule or a ticket assumes.
+4. Repository-specific instructions — a repo's own `CLAUDE.md`, its docs, its ADRs.
+5. Established codebase patterns — the nearest sibling's way of doing it.
 
 These never yield and are not defaults: git safety and approval, permissions (`gh`, issue trackers), secrets, destructive or irreversible actions, generated files, file encoding, already-applied migrations, and every before/after-implementing verification rule. If one of these appears to conflict with a ticket, stop and ask.
 
@@ -27,12 +27,12 @@ These never yield and are not defaults: git safety and approval, permissions (`g
 - Explore the codebase before making changes.
 - Ask before architectural changes; explain non-obvious decisions.
 - Never assume intent — always validate before performing side-effect operations.
-- Surface every non-trivial design decision as an explicit question. The plan is a living document to iterate on, not a one-shot approval.
+- Surface a design decision as an explicit question when reasonable interpretations lead to materially different work; otherwise state the assumption you took and keep going. Batch the questions into one round rather than stopping at each decision. The plan is a living document to iterate on, not a one-shot approval.
 - When two of my own instructions conflict, ask which wins instead of picking one silently.
 - When a task bundles a safe core with a risky piece, phase it: prove the core builds and works before starting the risky part.
 - Before applying a review finding that removes or restores existing behavior, check project memory for a recorded deliberate decision; surface the conflict instead of silently reversing it.
 - Audit cross-repo and cross-service consumers before calling a change safe.
-- Never hand-edit generated files — codegen output, generated types, generated docs and diagrams; regenerate them instead. Read them when tracing a flow; never review or "fix" them.
+- Never hand-edit generated files — codegen output, generated types, generated docs and diagrams; regenerate them instead. Read them when tracing a flow, and read a generated diff to confirm the regeneration produced what you expected — but fix what you find at the source or in the generator, never in the generated file itself. Two things are not that: scaffold a generator emits once and the repo then owns, and a checked-in generated file with no regeneration path left. Name which case you are in before touching either.
 - Before implementing, state the business rule, the affected flow, the invariants that must stay true, and any requirement that is still unclear.
 - After implementing, review the complete diff against those four points, and check callers, retries, concurrency, transactions, partial failures, backward compatibility, and existing tests.
 - Never call a change safe while its runtime behavior is unverified — say what was verified and what was not.
@@ -51,7 +51,7 @@ These never yield and are not defaults: git safety and approval, permissions (`g
 - Never stage as a convenience step — not to produce a diff, not to scope a review, not to "prepare" a commit I have not asked for. To show me a change, use `git diff` (unstaged), `git diff HEAD`, or `git status --short`; none of those touch the index. If a skill or command says it reviews "staged" changes and nothing is staged, review the working tree instead and say so — do not stage to satisfy it.
 - "Implement this", "fix it", or approving a plan is approval to EDIT FILES ONLY. It is never approval to stage, commit, or push. Approval for one of those does not extend to the others, or to a later change.
 - Never rebase, reset, or push onto `staging`, `main`, or `master` — including indirectly, through a branch whose upstream points at one of them.
-- Before any push, read the upstream: `git rev-parse --abbrev-ref '@{upstream}'`. A bare `git push` (with or without `--force-with-lease`) targets that upstream, not a same-named remote branch. If it differs from the current branch name, stop and push explicitly instead: `git push -u origin <branch>`.
+- Before any push, read the upstream: `git rev-parse --abbrev-ref '@{upstream}'`. A bare `git push` (with or without `--force-with-lease`) targets that upstream, not a same-named remote branch. If it differs from the current branch name, stop and push explicitly instead: `git push -u origin <branch>`. This has no exceptions: a skill that force-pushes names its target branch explicitly rather than relying on the upstream.
 - Every new branch — one I ask for or one you create — is meant to exist on the remote. Immediately after creating it, ask me to publish it with `git push -u origin <branch>`; that sets its own upstream instead of leaving it inheriting the base branch's. Never leave a new branch local-only without asking.
 - Do not add Claude/AI co-authorship to commits, PRs, or related artifacts.
 - Never commit secrets.
