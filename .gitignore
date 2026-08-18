@@ -9,6 +9,8 @@
 !README.md
 !LICENSE
 
+!rules/
+!rules/*
 !commands/
 !commands/*
 !skills/

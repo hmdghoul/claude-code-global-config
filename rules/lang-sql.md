@@ -1,0 +1,21 @@
+# SQL / Schema Rules
+
+Applies to SQL and ORM query languages, schema design, and migrations. ORM-specific mechanics live in `lang-kotlin.md`. Query and schema rules are defaults and yield per the precedence ladder in `CLAUDE.md`; the rule against editing an already-applied migration does not yield.
+
+## Queries
+- A lookup by a business key that is only unique within a scope must carry the scope column. Codes like an item number, an external id or a bin code repeat across stores/tenants, so a finder or an UPDATE keyed on the code alone silently matches another scope's row — a valid row, so nothing throws and no test fails. A key-only finder is correct only if a unique constraint on that column alone exists; open the migration and confirm before relying on it.
+- Guard a collection before it reaches an `IN` / `NOT IN` predicate. An empty list makes `IN` match nothing and `NOT IN` match everything, and the second one deletes or updates the whole table. Early-return on `isEmpty()` at the call site, not inside the query.
+- Every new `WHERE`, `ORDER BY` or `JOIN` column needs an index whose **leading** column is that one. A composite index does not serve a predicate on its second column, so the query planner falls back to a scan that only shows up at production row counts. Wrapping the column in a function — `SUBSTRING(col)`, `CAST(col)`, `DATE(col)` — discards the index the same way.
+- Spell joins out and never lean on a cartesian product: write `INNER JOIN` / `LEFT JOIN` naming the association or condition, never a comma-join (`FROM A a, B b WHERE a.x = b.id`) that the planner has to turn back into a join. In an ORM query language a join over a mapped relation already emits the FK condition and is never a cross join — write `INNER JOIN` anyway so the intent is visible to a reviewer instead of resting on a default.
+
+## Schema
+- A new table carries its audit timestamps from the start, and enum columns are stored as strings, not ordinals — an ordinal is unreadable in a report and silently re-points if the enum is ever reordered.
+- Dates and times get a real date/datetime column, never a varchar. A varchar date sorts and range-filters lexically, which is wrong the moment the format varies.
+- No nullable "only type X has this" columns — generalize the concept so every row has a real value.
+- A soft-deleted row still occupies every unique index it sits in. If the entity filters on `deleted_at IS NULL`, a re-insert of the same key fails against a row the application can no longer see. Adding a nullable `deleted_at` to the unique constraint does not fix it — MySQL treats NULLs as distinct, so every live row becomes unique again and real duplicates get in. Use a NOT NULL sentinel (`deleted_at` defaulting to the epoch) or a generated discriminator column in the constraint.
+
+## Migrations
+- Before any DDL on an existing table, ask me how many rows it holds. Past roughly a million, the change needs online-DDL flags (`ALGORITHM=INPLACE, LOCK=NONE`), and any attribute that positions a column forces a full table rebuild — drop it.
+- A new column on a populated table ships with an explicit decision about the rows that already exist, stated in the PR. Give it a default on the column and the same default on the entity field when those rows genuinely held that value; leave it NULL when "never set" must stay distinguishable from a real value a report would read as meaningful. Application code cannot backfill rows a migration already skipped, and it cannot recover a distinction a fabricated default erased.
+- The column type and the entity field type must agree. A wider field over a narrower column (a `Long` over `INT`) accepts values in code that the database rejects or truncates on write, and nothing in the build compares the two.
+- One changeSet/migration per file. Never edit or delete an already-applied migration — add a new reversing one.
