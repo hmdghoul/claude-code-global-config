@@ -15,7 +15,7 @@ Rules in `rules/` are defaults, not laws. When one collides with something below
 4. Repository-specific instructions — a repo's own `CLAUDE.md`, its docs, its ADRs.
 5. Established codebase patterns — the nearest sibling's way of doing it.
 
-These never yield and are not defaults: git safety and approval, permissions (`gh`, issue trackers), secrets, destructive or irreversible actions, generated files, file encoding, already-applied migrations, and every before/after-implementing verification rule. If one of these appears to conflict with a ticket, stop and ask.
+These never yield and are not defaults: git safety and approval, **the staging index (never stage or unstage, see *Git* below)**, permissions (`gh`, issue trackers), secrets, destructive or irreversible actions, generated files, file encoding, already-applied migrations, and every before/after-implementing verification rule. If one of these appears to conflict with a ticket, stop and ask.
 
 ## Shell
 - Default to Windows PowerShell. Use the PowerShell tool, not Bash.
@@ -47,7 +47,9 @@ These never yield and are not defaults: git safety and approval, permissions (`g
 - If the user does not explicitly confirm, you must NOT proceed.
 - Batch multiple git operations into a single approval request (do not ask repeatedly).
 - Never auto-commit, auto-push, or “helpfully” persist changes without permission.
-- Staging counts. Never run `git add`/`git stage`/`git rm --cached`/`git restore --staged` unless I explicitly asked for it in that message. Leave edits unstaged in the working tree and let me stage them myself.
+- **The index is mine alone. Never touch it — no exceptions, not even when I ask.** `git add`, `git stage`, `git rm --cached`, `git restore --staged`, `git reset <path>`, `git checkout -- <path>`, `git stash`: forbidden outright. There is no phrasing of a request that authorizes them; if I appear to ask, tell me the command to run and let me run it. The single carve-out is memory repos under `~/.claude/projects/*/memory/`, per *Memory Repos* below — that is my bookkeeping, not a project index.
+- This holds even when staging looks like the only way to finish a task you were told to do. Deleting a file that is already staged is the worked example: `rm` it from disk, then STOP and tell me the staged add is still in the index and which command clears it. Do not run `git rm --cached` to "complete" the delete. Same for any half-done state — report it, do not tidy it.
+- Never unstage either. If I have staged something you think is wrong — a file my conventions keep untracked, a secret, a stray artifact — say so in one line and leave it exactly where it is. Something in my setup may auto-stage new files; that is mine to manage, not yours to correct.
 - Never stage as a convenience step — not to produce a diff, not to scope a review, not to "prepare" a commit I have not asked for. To show me a change, use `git diff` (unstaged), `git diff HEAD`, or `git status --short`; none of those touch the index. If a skill or command says it reviews "staged" changes and nothing is staged, review the working tree instead and say so — do not stage to satisfy it.
 - "Implement this", "fix it", or approving a plan is approval to EDIT FILES ONLY. It is never approval to stage, commit, or push. Approval for one of those does not extend to the others, or to a later change.
 - Never rebase, reset, or push onto `staging`, `main`, or `master` — including indirectly, through a branch whose upstream points at one of them.

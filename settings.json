@@ -8,6 +8,7 @@
       ".."
     ]
   },
+  "model": "claude-opus-4-8[1m]",
   "defaultShell": "powershell",
   "statusLine": {
     "type": "command",
@@ -27,6 +28,7 @@
       "autoUpdate": true
     }
   },
+  "outputStyle": "Concise",
   "effortLevel": "xhigh",
   "awaySummaryEnabled": false,
   "autoUpdatesChannel": "latest",

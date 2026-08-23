@@ -5,6 +5,7 @@ Applies to Kotlin, and to the JVM stack it runs on (Spring, JPA/Hibernate, Gradl
 ## Kotlin idioms
 - Prefer named variables and early returns over chained scope/lambda helpers that do not earn their keep.
 - Prefer a plain `if` over a ternary or elvis chain, and an early `return` over assigning an if/else expression to a variable. A `var` plus an `if` is fine; do not "simplify" it away.
+- Never assign a `try`/`catch` or an `if`/`else` block to a variable, however Kotlin lets you. Declare the variable with its explicit type on its own line, assign inside the block, and `return`/`throw` from the failing branch — the value's type stays visible and the happy path reads top to bottom. This holds even when the block is a single expression.
 - A collection property defaults to empty, never null — `List<X> = emptyList()`, not `List<X>? = null`. A nullable collection pushes a null check onto every caller to express nothing.
 - If a property carries `@NotNull`, its type is non-nullable. Declaring it nullable and annotating it means the null is rejected at the edge and still treated as possible everywhere after.
 - Every `!!` must name the constraint or guard that makes it safe. If you cannot name one, write `?: throw` with a message — the message reaches the log and the caller, the `!!` reaches neither.
