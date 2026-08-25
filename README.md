@@ -14,9 +14,7 @@ My global `~/.claude/` config for [Claude Code](https://claude.ai/code), version
 
 The `.gitignore` ignores everything in `~/.claude/` and then un-ignores just the files above. Local state (`projects/`, `plugins/`, logs, caches) stays untracked.
 
-## Setup (Windows)
-
-### Windows PowerShell
+## Setup (Windows PowerShell)
 
 ```powershell
 # Clone to a temporary folder, copy everything into .claude, then remove the temporary folder

@@ -18,9 +18,6 @@ Rules in `rules/` are defaults, not laws. When one collides with something below
 These never yield and are not defaults: git safety and approval, **the staging index (never stage or unstage, see *Git* below)**, permissions (`gh`, issue trackers), secrets, destructive or irreversible actions, generated files, file encoding, already-applied migrations, and every before/after-implementing verification rule. If one of these appears to conflict with a ticket, stop and ask.
 
 ## Shell
-- Default to Windows PowerShell. Use the PowerShell tool, not Bash.
-- Use PowerShell cmdlets (`Get-Content`, `Get-ChildItem`, `Select-String`) — not Unix tools (`cat`, `ls`, `grep`).
-- Exception — when the harness puts the session in a mode that directs tool use to Bash (bypass permissions), Bash is fine for internal plumbing: reading, searching, and editing files. Anything you hand me to run myself, and anything touching Windows paths, tooling, or file encoding, stays PowerShell. Say once per session which you are using.
 - Write source and resource files as UTF-8 without BOM. A formatter can rewrite them in the platform codepage and silently mangle non-ASCII (an em dash becomes a lone `0x97`) while both the compiler and the format check still pass. Prefer ASCII in new comments, and re-check encoding after running a formatter.
 
 ## Workflow

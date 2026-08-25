@@ -17,13 +17,14 @@
   "enabledPlugins": {
     "csharp-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
-    "kotlin-lsp@claude-plugins-official": true
+    "kotlin-lsp@claude-plugins-official": true,
+    "eli5@claude-community": true
   },
   "extraKnownMarketplaces": {
-    "ponytail": {
+    "claude-community": {
       "source": {
         "source": "github",
-        "repo": "DietrichGebert/ponytail"
+        "repo": "anthropics/claude-plugins-community"
       },
       "autoUpdate": true
     }
