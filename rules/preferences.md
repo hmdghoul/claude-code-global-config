@@ -10,6 +10,7 @@ Language-agnostic style defaults; Kotlin-specific idioms live in `lang-kotlin.md
 - Pass arguments positionally; name them only when the language requires it — skipping an optional, passing out of declaration order, or disambiguating an overload.
 - Name for the behaviour, not for the feature that asked for it. `getOrdersSummary` outlives `getCodOrderSummary`; a name carrying today's only caller is either duplicated or made a lie by the second one.
 - Do not extract a helper used in exactly one place — inline it. For a tiny mutation/stamp block duplicated across sibling methods, keep it inline even at two call sites. The converse also holds: when an addition gives a method a *second reason to change* — a new decision, a new response shape, a new business rule — that is a new function, not more lines in the old one.
+- Prefer early returns and guard clauses over nested `if` / `else if`. When the guarded block sits mid-method with work that must still run after it — so returning from the method would skip that work — extract the guarded decision into its own function and write that flat with early returns. The distinct decision is itself the *second reason to change* that licenses the extraction, single call site notwithstanding; do not invoke the no-single-use-helpers rule to defend the nesting.
 
 ## Comment style
 - No comments unless the WHY is non-obvious (hidden constraint, subtle invariant, workaround). Never explain WHAT the code does.
