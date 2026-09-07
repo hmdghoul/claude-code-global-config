@@ -1,6 +1,6 @@
 ---
 name: review-lessons-reconcile
-description: Cross-check the CURRENT project's mined review lessons against the global rule tree (~/.claude/CLAUDE.md and rules/) and that project's memory, then report decisions — what is already covered, what should be added or strengthened, where it belongs, and what conflicts with an existing rule. Stops immediately if this repository has no review lessons yet; never reconciles another project's. Proposes only; never edits a rule file or memory without explicit approval. Use after running review-lessons, or when asked whether the lessons are reflected in the rules.
+description: Cross-check the CURRENT project's mined review lessons against the global rule tree (~/.claude/CLAUDE.md and the reference notes its routing table names in the vault) and that project's memory, then report decisions — what is already covered, what should be added or strengthened, where it belongs, and what conflicts with an existing rule. Stops immediately if this repository has no review lessons yet; never reconciles another project's. Proposes only; never edits a rule file or memory without explicit approval. Use after running review-lessons, or when asked whether the lessons are reflected in the rules.
 ---
 
 # Reconcile review lessons with the rules
@@ -36,10 +36,15 @@ Never reconcile against a remembered structure. The tree gets reorganised, and a
 
 ```bash
 cat ~/.claude/CLAUDE.md
-ls ~/.claude/rules/ && cat ~/.claude/rules/*.md
 ```
 
-Note the imports at the top of `CLAUDE.md` — that list is the authoritative set of rule files. Then read the memory for **this same project**:
+The *Reference Notes* table at the top of `CLAUDE.md` is the authoritative set of rule files. Read every note it lists, in full, from the folder it names (`~` is the home directory); the notes are not imported, so nothing already in context stands in for reading them:
+
+```bash
+cat "<folder named in the routing table>"/*.md
+```
+
+Then read the memory for **this same project**:
 
 ```bash
 ls ~/.claude/projects/<project-slug>/memory/
@@ -58,12 +63,12 @@ Two questions, in this order.
 
 | Lesson is about | Target |
 |---|---|
-| Language-agnostic style, comments, additive/revertible change | `rules/preferences.md` |
-| Matching existing patterns, architecture, layering, jobs and events, logging | `rules/repository.md` |
-| Kotlin idioms, Spring, JPA/Hibernate, build | `rules/lang-kotlin.md` |
-| Queries, schema, migrations | `rules/lang-sql.md` |
-| How a workflow or deliverable should be produced | `rules/skills.md` |
-| Precedence, shell, workflow gates, git safety, memory, output | `CLAUDE.md` |
+| Language-agnostic style, comments, additive/revertible change | `Code Style and Change Conventions` note |
+| Matching existing patterns, architecture, layering, configuration, transactions and locks, jobs and events, logging | `Service Architecture Conventions` note |
+| Kotlin idioms, Spring, JPA/Hibernate, build | `Kotlin and Spring Conventions` note |
+| Queries, schema, migrations | `SQL and Schema Conventions` note |
+| How a review finding, an explanation, or ticket text is written | `Review and Ticket Writing` note |
+| Process gates (ticket premise, rebasing, commit messages), precedence, shell, workflow, git safety, memory, output | `CLAUDE.md` |
 | A fact true only of this repo | that project's memory |
 
 If a lesson fits no existing section, say so and propose the section — do not force it into a section it half-matches.
@@ -87,7 +92,7 @@ Then ask which to apply. Apply only what is approved, one target at a time, and 
 
 ## Quality bars
 
-- **Every line added to the global tree is read at the start of every session, in every project, forever.** That is the real cost. A rule must be worth that. Prefer strengthening an existing line over adding a neighbouring one, and prefer one precise sentence over three hedged ones.
+- **A line added to `CLAUDE.md` is read at the start of every session, in every project, forever.** That is the real cost, and a rule must be worth it. A line added to a reference note costs only the sessions that trigger the note, so the bar there is lower: worth reading before every change of that kind. When a rule fits both, put it in the note. Prefer strengthening an existing line over adding a neighbouring one, and prefer one precise sentence over three hedged ones.
 - **Never propose a rule that only one repository needs.** That is the single most common way a global rule file rots. Route it to memory instead.
 - **Match the voice of the file you are editing** — these files are terse, imperative, second person, and state the reason inline. A proposal that reads like documentation will not survive.
 - **Quote before you claim.** "Already covered" without the quoted line is an assertion, not a finding. Same for "conflicts".
@@ -96,7 +101,8 @@ Then ask which to apply. Apply only what is approved, one target at a time, and 
 
 ## Safety
 
-- Propose only. Editing `CLAUDE.md`, anything in `rules/`, or any memory file requires explicit approval in the message that asks for it.
+- Propose only. Editing `CLAUDE.md`, any reference note in the vault, or any memory file requires explicit approval in the message that asks for it.
 - Memory commits are pre-authorized once a memory file is actually written (see *Memory Repos* in `CLAUDE.md`) — but writing it is not. Get approval for the content first, then write and commit.
 - Never edit the `.claude` repo's tracked files as a side effect, and never stage or commit there.
+- The vault has its own git repo that the user manages alone. Apply an approved note edit with the Edit tool and stop — never stage, commit, or push there.
 - If a proposal would reverse a decision recorded in project memory, that is a **conflict**, not an improvement.

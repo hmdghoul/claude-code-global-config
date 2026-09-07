@@ -107,7 +107,7 @@ The lessons are only worth what they change. End the run by asking, as the last 
 
 > Do you want me to run `review-lessons-reconcile` to check these against your global rules and this project's memory, and propose what to add or update?
 
-**Ask; never run it.** Wait for a yes. Reconciliation proposes edits to `~/.claude/CLAUDE.md`, the files in `~/.claude/rules/`, and the project memory — files that govern every future session in every project — so starting it uninvited is not a convenience, it is a surprise.
+**Ask; never run it.** Wait for a yes. Reconciliation proposes edits to `~/.claude/CLAUDE.md`, the reference notes in the vault, and the project memory — files that govern every future session in every project — so starting it uninvited is not a convenience, it is a surprise.
 
 Say what it does in one line if the user has not seen it before: it reports which lessons are already covered by an existing rule, which should be added and to which file, which belong in project memory as repo-specific facts, and which conflict with a decision already recorded. It proposes only; nothing is written without a second approval.
 

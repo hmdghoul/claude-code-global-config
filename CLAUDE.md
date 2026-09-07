@@ -1,14 +1,18 @@
 # Global Claude Code Rules
 
-Scope split — the rest of my rules live in `rules/` and are imported here:
-@rules/preferences.md
-@rules/repository.md
-@rules/lang-kotlin.md
-@rules/lang-sql.md
-@rules/skills.md
+## Reference Notes (read on demand)
+Detailed engineering guidance lives in my vault at `~/source/vault/03 - Engineering Knowledge/` (`~` is the home directory; resolve it to an absolute path, never a path relative to the project). Nothing there is imported. Before the first change of a kind listed below in a session, read the matching note in full with the Read tool and follow it; re-read it if it has dropped out of context. Read only the notes the task triggers. Their rules are defaults and yield per *Rule Precedence* below.
+
+| Before you... | Read |
+| --- | --- |
+| Write or edit code in any language (style, comments, additive and revertible change shape) | `Code Style and Change Conventions.md` |
+| Change code inside an application or service repository (established patterns, architecture, configuration, transactions and locks, jobs and events, logging) | `Service Architecture Conventions.md` |
+| Touch Kotlin, Spring, JPA/Hibernate, or a Gradle build | `Kotlin and Spring Conventions.md` |
+| Write SQL or JPQL, change a schema, or add a migration | `SQL and Schema Conventions.md` |
+| Write a code-review finding, bug writeup, or explanation of how something works, or draft ticket text | `Review and Ticket Writing.md` |
 
 ## Rule Precedence
-Rules in `rules/` are defaults, not laws. When one collides with something below, the higher item wins: follow it, and say in one line which default yielded and why. Never yield silently, and never invent a conflict to avoid a rule you dislike.
+The reference notes are defaults, not laws. When one collides with something below, the higher item wins: follow it, and say in one line which default yielded and why. Never yield silently, and never invent a conflict to avoid a rule you dislike.
 1. Business requirements and invariants — the outcome the system must achieve, including what a ticket asks for. A ticket's premise is not one of these: it is a claim about how the system behaves today, and it yields to item 3. A refuted premise does not take the outcome with it.
 2. Framework and language correctness — where an idiom exists because the compiler, ORM, broker, or runtime needs it. This constrains every implementation, including one a ticket proposes.
 3. Evidence from the affected flow — what the code demonstrably does at runtime beats what a rule or a ticket assumes.
@@ -33,6 +37,11 @@ These never yield and are not defaults: git safety and approval, **the staging i
 - Before implementing, state the business rule, the affected flow, the invariants that must stay true, and any requirement that is still unclear.
 - After implementing, review the complete diff against those four points, and check callers, retries, concurrency, transactions, partial failures, backward compatibility, and existing tests.
 - Never call a change safe while its runtime behavior is unverified — say what was verified and what was not.
+- Tickets here are often thin — a title alone, a few lines, or an account of current behaviour that is simply wrong. Verify a ticket's or bug report's premise against the code before acting on it, and trace the affected flow yourself rather than taking the description's word for how things work today.
+- The intended business outcome is the goal, not the ticket's account of the implementation. If the premise is refuted but the outcome is clear, do not drop the ticket: say what the ticket got wrong, what the code actually does, and propose the corrected implementation scope.
+- If that corrected scope materially differs from the work as requested, surface the difference and ask before implementing.
+- If the intended outcome cannot be determined reliably, ask for clarification rather than guessing at it.
+- Never edit or delete an already-applied migration — add a new reversing one. Before any DDL on an existing table, ask me how many rows it holds; the SQL note says what changes past roughly a million.
 
 ## Git (STRICT SAFETY RULES)
 - You must NEVER run any git command that modifies repository state without explicit user approval.
@@ -51,6 +60,8 @@ These never yield and are not defaults: git safety and approval, **the staging i
 - "Implement this", "fix it", or approving a plan is approval to EDIT FILES ONLY. It is never approval to stage, commit, or push. Approval for one of those does not extend to the others, or to a later change.
 - Never rebase, reset, or push onto `staging`, `main`, or `master` — including indirectly, through a branch whose upstream points at one of them.
 - Before any push, read the upstream: `git rev-parse --abbrev-ref '@{upstream}'`. A bare `git push` (with or without `--force-with-lease`) targets that upstream, not a same-named remote branch. If it differs from the current branch name, stop and push explicitly instead: `git push -u origin <branch>`. This has no exceptions: a skill that force-pushes names its target branch explicitly rather than relying on the upstream.
+- Exception — the `rebase-staging` skill: invoking it is approval to run its whole flow (fetch, pull, rebase, force-push) without pausing to confirm each step. That approval covers the flow, not the target: its step 6 pushes explicitly with `git push --force-with-lease origin HEAD`, so the upstream rule in `CLAUDE.md` is satisfied rather than waived. Never rewrite that push to a bare one.
+- A rebase or force-push on a branch with zero commits of its own is a no-op at best and a push to the base branch at worst. Check `git log --oneline origin/<base>..HEAD` first; if it is empty, report that and do nothing.
 - Every new branch — one I ask for or one you create — is meant to exist on the remote. Immediately after creating it, ask me to publish it with `git push -u origin <branch>`; that sets its own upstream instead of leaving it inheriting the base branch's. Never leave a new branch local-only without asking.
 - Do not add Claude/AI co-authorship to commits, PRs, or related artifacts.
 - Never commit secrets.
@@ -65,10 +76,11 @@ These never yield and are not defaults: git safety and approval, **the staging i
 - Memory lives under `~/.claude` (resolves to each machine's home dir): each per-project memory folder is at `~/.claude/projects/<project>/memory/` (do not guess the location). Each is its own standalone git repo (NOT a submodule). The `.claude` repo does not track them (`projects/` is gitignored), so they never reach the main repo or its remote.
 - After creating, editing, or deleting any memory file (including `MEMORY.md`), `git add -A` + `git commit` inside that memory folder's repo — Claude makes the commit itself (there is no hook). Pre-authorized; do not ask. Write a meaningful short message describing the change: `memory: <short description>`. No AI co-authorship.
 - New project's first memory write: `git init -b master` the folder first. Never push.
-- A rule that applies to every repo belongs in this file, not in a project memory. Project memory holds the repo-specific fact and the worked example that justifies the rule.
+- A rule that applies to every repo belongs in this file or in the reference notes, not in a project memory. Project memory holds the repo-specific fact and the worked example that justifies the rule.
 
 ## Output & Tone
 - Responses must be short and concise. No trailing summaries after completing a task.
 - One sentence of context before tool calls; one sentence of update at key moments. Silent is not acceptable; verbose is not either.
 - Structure a report as: what was done → what differs → what is not done. When asked to shorten, cut hard.
 - No emojis in code, commits, or responses unless explicitly requested.
+- When asked for a commit message, always provide TWO versions: a one-liner and the normal version. Do not make me ask for the other.
