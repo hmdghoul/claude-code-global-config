@@ -5,6 +5,7 @@ Language-agnostic style defaults; Kotlin-specific idioms live in `lang-kotlin.md
 ## Code style
 - Readability over cleverness.
 - Prefer explicit logic over implicit behavior.
+- Declare the explicit type on every member the language lets you annotate — a top-level, companion/static, or class-level property, and a public function's return. Inference is for locals inside a function body; a member is read far from its initializer, and its type is part of the contract, so `setOf(...)` or a factory call leaves the reader inferring what a word would have said. Match the sibling members' form even when a neighbour omits it.
 - Prefer `if` / `if-else` over `when` (or `switch`/`match`). Reach for `when` only for a genuine multi-way dispatch over many cases; two or three branches are an `if`. Compile-time exhaustiveness over an enum is not on its own a reason to pick `when` — say so once if it matters, then write the `if`.
 - Always brace both branches, even when each is a single expression.
 - Pass arguments positionally; name them only when the language requires it — skipping an optional, passing out of declaration order, or disambiguating an overload.

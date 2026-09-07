@@ -7,6 +7,7 @@ Applies when running the matching skill or doing that work by hand. The ticket-p
 - The intended business outcome is the goal, not the ticket's account of the implementation. If the premise is refuted but the outcome is clear, do not drop the ticket: say what the ticket got wrong, what the code actually does, and propose the corrected implementation scope.
 - If that corrected scope materially differs from the work as requested, surface the difference and ask before implementing.
 - If the intended outcome cannot be determined reliably, ask for clarification rather than guessing at it.
+- Leave generated artefacts and the pipeline steps that produce them out of ticket text — descriptions, rollout sections, "done when" lists, PR checklists and hand-off docs. A CI job, a bot commit, or a label that only re-runs codegen is not scope a person delivers or verifies, and listing it turns a ticket into a build log. This covers regenerated docs and diagrams, generated clients and types, formatter passes and lockfile refreshes. Say it once in chat if a gate is about to go red and I have to press the button; do not write it into the ticket. Still in scope, because a person decides them: a schema or contract version bump, a config key that must be set per environment, and a migration that must be run.
 
 ## Commit messages
 - When asked for a commit message, always provide TWO versions: a one-liner and the normal version. Do not make me ask for the other.

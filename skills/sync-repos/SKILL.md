@@ -8,6 +8,10 @@ Update every Git repo sitting directly under a parent folder: switch each to
 `staging`, fast-forward pull it, and report the result as one table. Invoking
 this skill is the user's approval to run the checkout and pull steps without
 pausing to confirm. It never commits, pushes, stashes, resets, or merges.
+Pruning stale remote-tracking refs is also approved, but only as the recovery in
+step 4 for a pull that a ref conflict blocked — it deletes nothing but pointers
+to branches the remote itself already deleted, and never a local branch, commit,
+or working-tree file.
 If a step fails in a way it does not tell you how to handle, stop and report it;
 do not improvise.
 
@@ -60,6 +64,43 @@ working directory.
      `FAILED — diverged`. Never force, rebase, or reset to resolve it.
    - Checkout blocked because an untracked file would be overwritten — report it
      as `FAILED — checkout blocked` and name the file.
+   - Fetch refused over conflicting refs — `unable to update local ref`,
+     `cannot lock ref`, or `'refs/remotes/origin/X' exists; cannot create
+     'refs/remotes/origin/X/Y'`. This is stale remote-tracking refs, not a
+     divergence, and it is recoverable — run the prune below. Note that the pull
+     aborts at the fetch, so the merge never runs: the repo sits untouched and
+     quietly behind while the command looks merely noisy. Never report it as up
+     to date on the strength of the pull not saying otherwise; read the repo's
+     own `rev-list --left-right --count '@{upstream}...HEAD'` instead.
+
+   Prune and retry, once, for that last case only:
+
+   ```bash
+   git -C <repo> remote prune origin --dry-run   # read what would go
+   git -C <repo> remote prune origin
+   git -C <repo> pull --ff-only
+   ```
+
+   If the prune itself exits non-zero with `cannot lock ref` /
+   `Unable to create '<name>.lock': File exists` while no git process is running
+   and no `.lock` file is on disk, the cause is two remote-tracking refs whose
+   names differ only in case. Git deletes refs as one transaction, and on a
+   case-insensitive filesystem their two lock paths collide, so the whole prune
+   aborts and nothing at all is removed — including the ref that blocked the
+   fetch. Find the pair and delete each one on its own, since a single lock
+   cannot collide with itself:
+
+   ```bash
+   git -C <repo> for-each-ref --format='%(refname)' refs/remotes/origin \
+     | tr 'A-Z' 'a-z' | sort | uniq -d
+   git -C <repo> ls-remote --heads origin '<name>'   # empty = gone from remote
+   git -C <repo> update-ref -d refs/remotes/origin/<ExactCaseName>
+   ```
+
+   Confirm with `ls-remote` that a ref is gone from the remote before deleting
+   it, and never delete one `ls-remote` still returns. Then prune and pull again.
+   If it still fails, report `FAILED — fetch blocked` with the git error verbatim
+   and stop; do not go after the lock files or `packed-refs` by hand.
 
    A failure in one repo never aborts the others; carry on and collect it.
 
@@ -68,8 +109,9 @@ working directory.
 
    | Repo | Branch now | Result | Staged | Unstaged | Untracked | Stash |
 
-   `Result` is one of: `up to date`, `pulled`, `SKIPPED — dirty`,
-   `FAILED — diverged`, `FAILED — checkout blocked`. Mark any repo left on a
+   `Result` is one of: `up to date`, `pulled`, `pulled after prune`,
+   `SKIPPED — dirty`, `FAILED — diverged`, `FAILED — checkout blocked`,
+   `FAILED — fetch blocked`. Mark any repo left on a
    non-`staging` default branch, and note the branch it was moved off when it
    started somewhere else — the user needs to know a feature branch was left
    behind.
@@ -81,6 +123,9 @@ working directory.
    - Any pre-existing stash found, per repo. A stash is invisible in
      `git status`, so it must be named explicitly or it will be forgotten.
    - Repos that were pulled on a default branch instead of `staging`.
+   - Every repo that needed a prune: how many refs went, and the name of any ref
+     deleted individually to break a case collision. The user never asked for
+     those deletions, so they are reported, not assumed.
 
    Say plainly when a category is empty ("no stashes anywhere") rather than
    omitting it — the absence is the useful signal.
