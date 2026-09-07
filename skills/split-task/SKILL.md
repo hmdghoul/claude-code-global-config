@@ -1,6 +1,6 @@
 ---
 name: split-task
-description: Split one Jira task into the fewest independently shippable subtasks (max 3), each drafted as a self-contained, AI-agent-ready ticket with outcome, implementation steps, file locations, acceptance criteria, dependencies and delivery order. Accepts an epic plus a target task (reviews the epic and its siblings first for scope, dependencies, settled decisions and duplication) or a target task alone. Plan-mode: analyzes read-only, then writes each ticket as a Markdown file under the project's feature-docs/ after approval, then reviews those drafts in rounds until they settle - never writes to Jira and never touches source. Use for "/split-task STR-758", "/split-task epic=STR-652 STR-660", "split this ticket into shippable pieces", or "review the split documents again".
+description: Split one Jira task into the fewest independently shippable subtasks (max 3), each drafted as a self-contained, AI-agent-ready ticket with outcome, implementation steps, file locations, acceptance criteria, dependencies and delivery order. Accepts an epic plus a target task (reviews the epic and its siblings first for scope, dependencies, settled decisions and duplication) or a target task alone. Plan-mode: analyzes read-only, closes every open question with the code or by asking the user (who answers or explicitly defers), writes each ticket as a Markdown file under the project's feature-docs/ after approval, then reviews those drafts in rounds until they settle - never writes to Jira and never touches source. Use for "/split-task STR-758", "/split-task epic=STR-652 STR-660", "split this ticket into shippable pieces", or "review the split documents again".
 ---
 
 # split-task
@@ -16,7 +16,7 @@ The measure is not that the task got split. It is that an implementer given **on
 Two failure modes the whole procedure exists to prevent:
 
 - **A dropped requirement** - the split loses something the original carried. Steps 4 and 6 are the guard: inventory every requirement, then prove coverage in a table.
-- **A leaking seam** - the split *itself* creates the defect. A constraint stated in the ticket that cannot act on it; two tickets editing the same file with neither saying so; an acceptance criterion that contradicts its own implementation steps. Nothing in the source ticket is wrong; the division introduced the bug. Step 10 is the guard.
+- **A leaking seam** - the split *itself* creates the defect. A constraint stated in the ticket that cannot act on it; two tickets editing the same file with neither saying so; an acceptance criterion that contradicts its own implementation steps. Nothing in the source ticket is wrong; the division introduced the bug. Step 11 is the guard.
 
 The second failure mode is the one that goes unnoticed, because every individual ticket reads fine on its own.
 
@@ -25,7 +25,8 @@ The second failure mode is the one that goes unnoticed, because every individual
 - **Never write to Jira.** No create, comment, transition, link or assign. The tickets are delivered as Markdown files under the project's `feature-docs/` for the user to paste. Reading - fetching an issue, searching, following links - is fine.
 - **Do not implement.** No source edits, no tests, no refactoring. The only files this skill writes are the `feature-docs/` ticket Markdown, and only after the plan is approved.
 - **Preserve every original requirement.** Inventory them first, then prove coverage with a traceability table. A requirement that lands in no subtask is a bug in the split, not a scope decision.
-- **Do not invent missing details.** No fabricated endpoints, field names, table names, thresholds or acceptance numbers. Anything the source does not state and the code does not show goes under "Open questions", named as unknown.
+- **Do not invent missing details.** No fabricated endpoints, field names, table names, thresholds or acceptance numbers. Anything the source does not state and the code does not show becomes an open question - and every open question gets answered before the tickets are final.
+- **Never leave an open question unasked.** Every one is closed by the code or by the user. Anything the repository cannot settle goes to the user with AskUserQuestion, and every such question offers **defer** as an explicit choice. A question may stay open in a ticket only because the user consciously deferred it, never because it was not put to them. See Step 8.
 - **Maximum three subtasks. Fewer is better.** Two good tickets beat three thin ones. One is a valid answer.
 - **No split when a split adds nothing.** Say so plainly, output the single tightened ticket, and give the reason.
 - **File locations only when verified.** A `path/File.kt:NN` in a ticket must come from a real read or grep of the checked-out code. When the code was not consulted or the area lives in another repo, write the step behaviourally and mark the location unconfirmed.
@@ -103,7 +104,7 @@ Every requirement must map to at least one subtask. Avoid duplication unless a c
 
 One ticket per subtask, in delivery order. **Self-contained**: an agent given only that one ticket and the repo must be able to start. Repeat the context it needs instead of pointing at the parent; reference other tickets only as dependency keys. Concrete verbs - no "handle", "support" or "improve" without an object and a condition.
 
-Each ticket becomes its own Markdown file in the current project's `feature-docs/` folder (Step 9 writes them, after approval). Body:
+Each ticket becomes its own Markdown file in the current project's `feature-docs/` folder (Step 10 writes them, after approval). Body:
 
 ```
 Summary: <imperative, outcome-shaped, 80 chars or less>
@@ -132,10 +133,30 @@ Dependencies
 Blocked by: <KEY or none>  |  Blocks: <KEY or none>
 
 Open questions
-- <anything unknown - never guessed>
+- <only questions the user explicitly deferred. Each names who can answer it, what it blocks, and what happens if nobody does. Never guessed, never unasked - see Step 8. Omit the whole section when none were deferred.>
 ```
 
-## Step 8 - Present
+## Step 8 - Close every open question
+
+**An open question is not a deliverable.** Every one is answered by the code or by the user before the tickets are final. Never hand over a ticket carrying a question nobody was asked.
+
+Work each one in this order.
+
+1. **Answer it from the repository first.** Most unknowns are unknown only because nobody looked. Grep it, read the migration, open the validator behind the annotation, check the workflow's default, read the published POM. A question the code can settle is not a question for the user, and asking it anyway wastes their attention on the ones that need it.
+2. **Check project memory before asking.** A recorded decision or a documented behaviour already answers some of them, and asking again invites the user to re-litigate something they settled.
+3. **Put the rest to the user, in one batched round.** Use AskUserQuestion, never a stream of separate prompts. These are the questions needing authority or access no repository records: who owns a release, which value is set in an environment, whether running a library below its tested baseline is acceptable, what the intended behaviour actually is, who will do a thing nobody is named for.
+
+**Every question you ask offers "defer" as an explicit option.** Deferring is a decision the user makes; silence is not. Give them enough to decide with in the option text: what each answer implies, what happens if it stays open, and who would have to answer it.
+
+Then fold the results back in:
+
+- **An answered question stops being a question.** Put the answer where the work is - the scope section, the implementation step, the acceptance criterion, the risk row. Do not leave it in an "Open questions" list annotated as answered; that reads as still-unknown to the next person.
+- **A deferred question stays, and names its owner.** Say what the question is, **who** can answer it, what it blocks, and what happens if nobody does. A deferred question with no named owner is an unasked question wearing a hat.
+- **Nothing is closed by guessing**, and nothing is dropped because it was awkward to ask. If a question turns out not to matter, say why it does not matter - do not delete it silently.
+
+A ticket ships with an "Open questions" section only when every entry in it is a question the user chose to leave open.
+
+## Step 9 - Present
 
 Output in this order, then call ExitPlanMode with it as the plan:
 
@@ -144,10 +165,10 @@ Output in this order, then call ExitPlanMode with it as the plan:
 3. **Delivery order** - `1 -> 2 -> 3`, with what forces the order, or "independent, any order".
 4. **Traceability table** from Step 6.
 5. **The ticket drafts** from Step 7.
-6. **Open questions** - consolidated, if any. Nothing invented to close one.
-7. **Files to be written** - the `feature-docs/` paths from Step 9.
+6. **Question ledger** from Step 8 - what the code answered, what the user answered and where each answer now lives, and what they chose to defer with its owner. If nothing was deferred, say so in one line. An unasked question appearing here means Step 8 was skipped.
+7. **Files to be written** - the `feature-docs/` paths from Step 10.
 
-## Step 9 - Write the ticket files
+## Step 10 - Write the ticket files
 
 After the plan is approved (plan mode forbids writing before that), write each ticket from Step 7 as its own Markdown file under `feature-docs/` at the repo root (`git rev-parse --show-toplevel`). Create the folder if it does not exist.
 
@@ -159,7 +180,7 @@ After the plan is approved (plan mode forbids writing before that), write each t
 
 Then list the written paths, and close with one line reminding the user they paste these into Jira themselves. Do not offer to create the Jira issues.
 
-## Step 10 - Review the drafts in rounds, until they settle
+## Step 11 - Review the drafts in rounds, until they settle
 
 **Writing the files is not the end.** Expect the first drafts to carry real defects, and expect several rounds to be needed - each one finding things the last did not. Offer a review after writing, and run another whenever asked.
 
@@ -183,6 +204,7 @@ Keep going while a pass over previously-unexamined material is still finding thi
 - **Read project memory before writing guidance about a subsystem.** A memory file that already records how something works will contradict a draft written without it - a defect that was avoidable, not merely missed.
 - **Encoding.** Pure ASCII, no BOM, no code-fence wrapper around the body. Check after every editing round, including your own edits - it is easy to introduce a stray glyph in a warning line.
 - **Index untouched.** Never stage, unstage or commit the ticket files. If the user's tooling auto-stages them, say so and give them the command; do not run it.
+- **New unknowns get closed in the same round.** A review that turns up something the drafts assumed is a new open question - run it through Step 8 now (code first, then the user with a defer option), not into an "Open questions" list. Likewise re-check that every previously deferred question still names an owner and still says what it blocks.
 
 ## Usage
 
@@ -207,7 +229,7 @@ Keep going while a pass over previously-unexamined material is still finding thi
 /split-task
 ```
 
-**Reviewing drafts that already exist** (step 10) - no key needed; the drafts are the input:
+**Reviewing drafts that already exist** (step 11) - no key needed; the drafts are the input:
 
 ```
 review the split documents again
