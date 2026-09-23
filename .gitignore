@@ -17,3 +17,6 @@
 !skills/*
 !skills/*/*
 !skills/*/*/*
+
+skills/synced/
+skills/synced/*

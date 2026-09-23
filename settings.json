@@ -5,13 +5,50 @@
   "permissions": {
     "defaultMode": "bypassPermissions",
     "additionalDirectories": [
-      ".."
+      "~/source",
+      "~/.claude"
+    ],
+    "deny": [
+      "Bash(git stage:*)",
+      "Bash(git stash:*)",
+      "Bash(git rm --cached:*)",
+      "Bash(git restore --staged:*)",
+      "Bash(git checkout --:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr review:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr close:*)",
+      "Bash(gh pr ready:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh release create:*)",
+      "PowerShell(git stage:*)",
+      "PowerShell(git stash:*)",
+      "PowerShell(git rm --cached:*)",
+      "PowerShell(git restore --staged:*)",
+      "PowerShell(git checkout --:*)",
+      "PowerShell(gh pr create:*)",
+      "PowerShell(gh pr edit:*)",
+      "PowerShell(gh pr comment:*)",
+      "PowerShell(gh pr review:*)",
+      "PowerShell(gh pr merge:*)",
+      "PowerShell(gh pr close:*)",
+      "PowerShell(gh pr ready:*)",
+      "PowerShell(gh issue create:*)",
+      "PowerShell(gh issue comment:*)",
+      "PowerShell(gh release create:*)"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "PowerShell(git push:*)"
     ]
   },
   "defaultShell": "powershell",
   "statusLine": {
     "type": "command",
-    "command": "powershell -NoProfile -ExecutionPolicy Bypass -File C:/Users/Ahmad/.claude/statusline.ps1"
+    "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$HOME/.claude/statusline.ps1\""
   },
   "enabledPlugins": {
     "csharp-lsp@claude-plugins-official": true,
@@ -25,19 +62,19 @@
         "source": "github",
         "repo": "anthropics/claude-plugins-community"
       },
-      "autoUpdate": true
+      "autoUpdate": false
     }
   },
   "outputStyle": "Concise",
   "modelSettings": {
     "claude-sonnet-5": {
-      "effortLevel": "high"
+      "effortLevel": "medium"
     },
-    "claude-opus-5": {
-      "effortLevel": "xhigh"
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
     },
     "claude-fable-5-1": {
-      "effortLevel": "xhigh"
+      "effortLevel": "high"
     }
   },
   "awaySummaryEnabled": false,
@@ -46,6 +83,7 @@
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
   "autoCompactEnabled": true,
-  "remoteControlAtStartup": true,
-  "agentPushNotifEnabled": true
+  "remoteControlAtStartup": false,
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true
 }
