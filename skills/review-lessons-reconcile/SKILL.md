@@ -5,61 +5,32 @@ description: Cross-check the CURRENT project's mined review lessons against the 
 
 # Reconcile review lessons with the rules
 
-Takes the lessons produced by the `review-lessons` skill and answers one question per lesson: **is this already a rule, should it become one, and where does it belong?**
+For each lesson from `review-lessons`, decide whether it is already a rule, should become one, and where it belongs. The output is decisions for the user to approve: **propose, never apply.**
 
-The output is a set of **decisions for the user to approve**. This skill writes nothing on its own.
-
-## Why this is not part of `review-lessons`
-
-That skill is read-only against GitHub and writes only to its own output folder. This one proposes edits to the files that govern every future session. Different blast radius, so a different skill and a stricter rule: **propose, never apply.**
-
-## Step 0 — Gate: this project must have review lessons, or stop
-
-This skill reconciles **the current project's** lessons and nothing else. Resolve the repository you are actually in, then look for its lesson set:
+## Step 0: Gate
 
 ```bash
 gh repo view --json nameWithOwner -q .nameWithOwner        # -> <owner>/<name>
 ls ~/.claude/lessons/<owner>/<name>/.review-lessons-state.json
 ```
 
-**If that file does not exist, stop.** Do not fall back to another project's lessons, do not offer to reconcile a different repository, and do not reconstruct lessons from anything else. Report exactly this and end:
+If the file doesn't exist, report exactly this and end. Don't use another project's lessons or reconstruct lessons from anything else:
 
 > No review lessons exist for `<owner>/<name>`. Run the `review-lessons` skill for this repository first — this skill only reconciles lessons that were mined from it.
 
-If the current directory is not a git repository or `gh` cannot resolve a remote, stop the same way: there is no project to reconcile.
+If there is no git repo or `gh` can't resolve a remote, stop the same way. If the state file has zero lessons, stop and say the last run produced none. Otherwise, load its `lessons` array (`mistake`, `whyItMatters`, `whatToCheck`, `occurrences`, `prNumbers`) rather than parsing the markdown.
 
-Only when the file exists, load it — the `lessons` array carries `mistake`, `whyItMatters`, `whatToCheck`, `occurrences`, and `prNumbers`. Prefer it over parsing the rendered markdown. If it exists but holds zero lessons, stop and say the last run produced none.
+## Step 1: Read the current rule tree, every time
 
-## Step 1 — Read the current rule tree. Every time.
+Never rely on a remembered structure.
+- Read `~/.claude/CLAUDE.md`. Its *Reference Notes* table is the authoritative list of rule files. Read every note it lists, in full, from the folder it names. Nothing already in context substitutes for this.
+- Read this project's `~/.claude/projects/<project-slug>/memory/MEMORY.md`, plus any memory file whose index line relates to a lesson.
+- Read the analysed repo's own `CLAUDE.md` if it has one. It outranks the global defaults, and a lesson it covers needs nothing.
 
-Never reconcile against a remembered structure. The tree gets reorganised, and a stale picture produces proposals aimed at files or sections that no longer exist.
+## Step 2: Route each lesson
 
-```bash
-cat ~/.claude/CLAUDE.md
-```
-
-The *Reference Notes* table at the top of `CLAUDE.md` is the authoritative set of rule files. Read every note it lists, in full, from the folder it names (`~` is the home directory); the notes are not imported, so nothing already in context stands in for reading them:
-
-```bash
-cat "<folder named in the routing table>"/*.md
-```
-
-Then read the memory for **this same project**:
-
-```bash
-ls ~/.claude/projects/<project-slug>/memory/
-cat ~/.claude/projects/<project-slug>/memory/MEMORY.md
-```
-
-Read in full any memory file whose index line looks related to a lesson. Also check the analysed repository for its own `CLAUDE.md` — if one exists it outranks the global defaults for that repo, and a lesson it already covers needs nothing.
-
-## Step 2 — Route each lesson
-
-Two questions, in this order.
-
-**First: is it universal or repo-specific?** The governing rule is in `CLAUDE.md` under *Memory Repos*: a rule that applies to every repo belongs in the global tree; project memory holds the repo-specific fact and the worked example that justifies it. A lesson naming a table, a service, a bundle filename, or a framework only this repo uses is repo-specific — no matter how strongly the evidence supports it.
-
-**Second: which file?** Match the lesson to the file whose scope already covers that subject, and to a section that already exists there. Read the tree's own headers rather than assuming this table is current:
+1. **Universal or repo-specific?** Per *Memory Repos* in `CLAUDE.md`, a lesson that names a table, service, bundle filename or framework only this repo uses is repo-specific, however strong the evidence. It goes to project memory.
+2. **Which file and section?** Use the tree's actual headers; this table is only a guide:
 
 | Lesson is about | Target |
 |---|---|
@@ -71,38 +42,32 @@ Two questions, in this order.
 | Process gates (ticket premise, rebasing, commit messages), precedence, shell, workflow, git safety, memory, output | `CLAUDE.md` |
 | A fact true only of this repo | that project's memory |
 
-If a lesson fits no existing section, say so and propose the section — do not force it into a section it half-matches.
+If no existing section fits, say so and propose a new one rather than forcing a half-match.
 
-## Step 3 — Decide, one verdict per lesson
+## Step 3: One verdict per lesson
 
-- **already-covered** — quote the existing rule line verbatim and name its file. No action. Say this plainly and often; it is the most useful verdict and the easiest to skip past.
-- **strengthen** — a rule exists but is vaguer or narrower than the evidence warrants. Give the current line and the proposed replacement, and say what the evidence adds.
-- **add** — no rule covers it. Give the exact line to insert, the file, and the section.
-- **add-to-memory** — repo-specific. Give the memory file name, `description`, `metadata.type`, the body, and the `MEMORY.md` pointer line. Check the existing memories first: if one already covers the topic, propose an edit to that file rather than a new one.
-- **conflict** — the lesson contradicts an existing rule or a recorded deliberate decision. **Never resolve this yourself.** Show both sides and ask. A reviewer's repeated comment is not automatically right; the user may have decided against it on purpose.
-- **no-action** — real, but not rule-shaped: too situational, already enforced by CI or a linter, or a one-off. Say why.
+- **already-covered**: quote the existing line verbatim and name its file. Say this plainly and often.
+- **strengthen**: give the current line, the replacement, and what the evidence adds.
+- **add**: give the exact line, file and section.
+- **add-to-memory**: give the file name, `description`, `metadata.type`, body and `MEMORY.md` pointer line. If an existing memory covers the topic, propose editing it instead.
+- **conflict**: the lesson contradicts a rule or a recorded decision, including one in project memory. Show both sides and ask; never resolve it yourself.
+- **no-action**: say why (too situational, already enforced by tooling, or a one-off).
 
-## Step 4 — Report
+## Step 4: Report
 
-Lead with a table: lesson, verdict, target. Then the details for every verdict that needs one, in the order a person would act on them.
-
-For each proposal give the **exact text to insert**, ready to paste. Cite the evidence — occurrence count and two or three PR numbers — so the user can judge whether it earns its place.
-
-Then ask which to apply. Apply only what is approved, one target at a time, and re-read the file immediately before editing it.
+Lead with a table of lesson, verdict and target. Then give details in the order a person would act on them: paste-ready text for each proposal, with the occurrence count and 2-3 PR numbers as evidence. Ask which to apply. Apply only approved items, one target at a time, and re-read each file right before editing it.
 
 ## Quality bars
 
-- **A line added to `CLAUDE.md` is read at the start of every session, in every project, forever.** That is the real cost, and a rule must be worth it. A line added to a reference note costs only the sessions that trigger the note, so the bar there is lower: worth reading before every change of that kind. When a rule fits both, put it in the note. Prefer strengthening an existing line over adding a neighbouring one, and prefer one precise sentence over three hedged ones.
-- **Never propose a rule that only one repository needs.** That is the single most common way a global rule file rots. Route it to memory instead.
-- **Match the voice of the file you are editing** — these files are terse, imperative, second person, and state the reason inline. A proposal that reads like documentation will not survive.
-- **Quote before you claim.** "Already covered" without the quoted line is an assertion, not a finding. Same for "conflicts".
-- **Do not propose what a tool already enforces.** If the formatter, compiler, or CI catches it, a rule adds noise and nothing else.
-- Evidence strength is not the same as rule-worthiness. A lesson with 100 occurrences may be a linter's job; one with 5 may be a data-corruption class worth a permanent rule. Say which is which.
+- A `CLAUDE.md` line costs every session in every project; a note line costs only the sessions that trigger that note. If a rule fits both, put it in the note. Prefer strengthening an existing line to adding a neighbour, and one precise sentence to three hedged ones.
+- Never propose a global rule that only one repo needs; route it to memory.
+- Match the target file's voice: terse, imperative, second person, reason inline.
+- Quote before claiming "already covered" or "conflicts".
+- Don't propose what a formatter, compiler or CI already enforces.
+- Evidence strength is not rule-worthiness. 100 occurrences may be a linter's job, and 5 may be a data-corruption class. Say which is which.
 
 ## Safety
 
-- Propose only. Editing `CLAUDE.md`, any reference note in the vault, or any memory file requires explicit approval in the message that asks for it.
-- Memory commits are pre-authorized once a memory file is actually written (see *Memory Repos* in `CLAUDE.md`) — but writing it is not. Get approval for the content first, then write and commit.
-- Never edit the `.claude` repo's tracked files as a side effect, and never stage or commit there.
-- The vault has its own git repo that the user manages alone. Apply an approved note edit with the Edit tool and stop — never stage, commit, or push there.
-- If a proposal would reverse a decision recorded in project memory, that is a **conflict**, not an improvement.
+- Editing `CLAUDE.md`, a vault note or a memory file needs explicit approval in the message that asks for it. Once approved memory content is written, commit it per *Memory Repos*.
+- Never edit, stage or commit the `.claude` repo's tracked files as a side effect.
+- Apply approved vault edits with the Edit tool only. Never stage, commit or push the vault.

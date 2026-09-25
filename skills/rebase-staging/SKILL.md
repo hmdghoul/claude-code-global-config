@@ -4,69 +4,11 @@ description: Rebase the current Git branch onto the latest remote staging branch
 disable-model-invocation: true
 ---
 
-Rebase the current branch onto the latest remote `staging`, then force-push it
-safely with `--force-with-lease`. Invoking this skill is the user's approval to
-run the whole flow — fetch, pull the current branch, rebase, and force-push — without pausing to confirm.
-If a step fails in a way it does not tell you how to handle, stop and report it; do not improvise.
+Rebase the current branch onto the latest `origin/staging` and force-push it with `--force-with-lease`. Invoking this skill approves the whole flow; do not pause to confirm steps. If a step fails in a way not covered here, stop and report. Do not improvise.
 
-1. Determine the current branch:
-
-   ```bash
-   git branch --show-current
-   ```
-
-   If the output is empty (detached HEAD) or is `staging`, `main`, or `master`,
-   stop and tell the user — do not rebase those branches.
-
-2. Make sure the working tree is clean:
-
-   ```bash
-   git status --porcelain
-   ```
-
-   If there is any output (uncommitted changes), stop and ask the user to commit
-   or stash first. Do not auto-stash.
-
-3. Fetch the latest staging branch:
-
-   ```bash
-   git fetch origin staging
-   ```
-
-4. Sync the current branch with its own remote first, so any remote-only
-   commits are included locally before the rebase — otherwise the later force-push is rejected with
-   `stale info`:
-
-   ```bash
-   git pull --ff-only origin "$(git branch --show-current)"
-   ```
-
-   Name the branch explicitly — a bare `git pull` reads the upstream, which may point
-   at `staging`. Not `origin HEAD`: on a pull the refspec resolves on the remote.
-
-   Use `--ff-only` so this never silently creates a merge commit. If the branch
-   was never pushed, this errors harmlessly — skip it and
-   continue. If it fails because local and remote have genuinely diverged
-   (can't fast-forward), stop and report — do not force anything.
-
-5. Rebase the current branch onto it:
-
-   ```bash
-   git rebase origin/staging
-   ```
-
-   If the rebase stops on conflicts, resolve them — do not just report them. For each
-   conflicted file: inspect both sides of the conflict, understand the intent of the
-   current branch's change and of staging, and edit the file to a correct merged result
-   that keeps both. Then `git add` the resolved files and run `git rebase --continue`.
-   Repeat until the rebase finishes. Only abort (`git rebase --abort`) as a last resort,
-   when a conflict genuinely cannot be resolved safely — then stop and report what blocked it.
-
-6. Force-push the rebased branch safely:
-
-   ```bash
-   git push --force-with-lease origin HEAD
-   ```
-
-   Name the branch explicitly — a bare push targets the upstream, which may point at
-   `staging`. `--force-with-lease` still refuses if the remote moved.
+1. `git branch --show-current`. If it is empty (detached HEAD) or `staging`, `main` or `master`, stop and tell the user.
+2. `git status --porcelain`. If there is any output, stop and ask the user to commit or stash. Never auto-stash.
+3. `git fetch origin staging`
+4. `git pull --ff-only origin "$(git branch --show-current)"` brings in remote-only commits so the later push isn't rejected as `stale info`. Name the branch: a bare `git pull` uses the upstream, which may be `staging`, and `origin HEAD` resolves on the remote. A never-pushed branch errors harmlessly, so continue. If it can't fast-forward (diverged), stop and report without forcing anything.
+5. `git rebase origin/staging`. Resolve conflicts yourself rather than reporting them. For each file, read both sides, work out the intent of each change, and edit to a correct result that keeps both. Then `git add` it and `git rebase --continue`, and repeat. Use `git rebase --abort` only as a last resort, when a conflict can't be resolved safely, then report what blocked it.
+6. `git push --force-with-lease origin HEAD`. The target is explicit because a bare push goes to the upstream, which may be `staging`. The lease still refuses if the remote moved.

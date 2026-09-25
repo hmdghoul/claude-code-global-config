@@ -1,36 +1,25 @@
 ---
 name: slack-ticket-msg
-description: Generate a copy-pasteable Slack message announcing a Jira ticket to a teammate or team lead, in a fixed friendly format (greeting, one-line what-it-is + ticket link, quick plain-English summary, optional endpoint/interface bullets). Use when telling someone on Slack about a ticket you created for them to pick up (e.g. handing frontend work to the FE lead).
+description: Generate a copy-pasteable Slack message announcing a Jira ticket to a teammate or team lead (greeting, ticket link, plain-English summary, optional endpoint bullets). Use when telling someone on Slack about a ticket you created for them to pick up (e.g. handing frontend work to the FE lead).
 ---
 
-## Context (for deriving the summary)
+## Context
 Current branch: !`git rev-parse --abbrev-ref HEAD`
 Recent commits: !`git log -5 --oneline`
 
 ## Inputs
 
-Read the argument passed to this skill ($ARGUMENTS) — it may contain the recipient name, the
-ticket, or free text. Gather these three things; take whatever the conversation already
-provides, and ask the user only for what is genuinely missing (do not guess or use
-placeholders):
+Take these from $ARGUMENTS and the conversation. Ask only for what is missing; never guess or use placeholders.
 
-1. **Recipient** — the person's first name (e.g. Saadany). If none is given and none can be
-   inferred, use `team`.
-2. **Ticket** — the Jira key (e.g. STR-630) and its full URL. If only one is given, ask for
-   the other. Show the key inline and the full URL as the link.
-3. **What + summary** — a one-line "what it is" and a 2–4 sentence plain-English summary of
-   what the feature does and why it matters. Prefer to derive these from the current
-   conversation (the feature/ticket just discussed); fall back to the branch + commits above.
-   Keep it product-level and readable — not a raw changelog.
+1. **Recipient**: first name. If none is given or inferable, use `team`.
+2. **Ticket**: Jira key and full URL. Ask for whichever is missing.
+3. **What + summary**: a one-line "what it is" plus a 2-4 sentence product-level summary of what it does and why it matters (not a changelog). Derive from the conversation first, then from the branch and commits above.
 
-If the feature exposes an API or interface the recipient's team will integrate against, add a
-short bullet list of the key endpoints/interfaces (method + path + one phrase). Otherwise omit
-that block.
+Add the endpoint block only if the recipient's team will integrate against an API or interface.
 
 ## Output
 
-Output ONLY the message below, in a fenced code block so it is copy-pasteable. No intro, no
-commentary. Keep the `:wave:` shortcode. Keep the soft "whenever you have capacity" ask.
+Only this message, in a fenced code block, with no commentary:
 
 ```
 Hey {Recipient} :wave:

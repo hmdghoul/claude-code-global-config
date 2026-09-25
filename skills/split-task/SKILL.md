@@ -1,96 +1,69 @@
 ---
 name: split-task
-description: Split one Jira task into the fewest independently shippable subtasks (max 3), each drafted as a self-contained, AI-agent-ready ticket with outcome, implementation steps, file locations, acceptance criteria, dependencies and delivery order. Accepts an epic plus a target task (reviews the epic and its siblings first for scope, dependencies, settled decisions and duplication) or a target task alone. Plan-mode: analyzes read-only, closes every open question with the code or by asking the user (who answers or explicitly defers), writes each ticket as a Markdown file under the project's feature-docs/ after approval, then reviews those drafts in rounds until they settle - never writes to Jira and never touches source. Use for "/split-task STR-758", "/split-task epic=STR-652 STR-660", "split this ticket into shippable pieces", or "review the split documents again".
+description: >-
+  Split one Jira task into the fewest independently shippable subtasks (max 3), each drafted as a self-contained, AI-agent-ready ticket with outcome, implementation steps, file locations, acceptance criteria, dependencies and delivery order. Accepts an epic plus a target task (reviews the epic and its siblings first for scope, dependencies, settled decisions and duplication) or a target task alone. Plan-mode: analyzes read-only, closes every open question with the code or by asking the user (who answers or explicitly defers), writes each ticket as a Markdown file under the project's feature-docs/ after approval, then reviews those drafts in rounds until they settle - never writes to Jira and never touches source. Use for "/split-task STR-758", "/split-task epic=STR-652 STR-660", "split this ticket into shippable pieces", or "review the split documents again".
 ---
 
 # split-task
 
-Turn one oversized task into **the fewest independently shippable tickets**, each ready to hand to an AI agent or a developer with no other context. Built for **plan mode**: read, analyze, draft, then - after approval - write one Markdown ticket file per subtask into the project's `feature-docs/`, then review those files in rounds until they settle. No source edits, no Jira writes.
+Split one oversized task into the fewest independently shippable tickets. This skill is built for plan mode: analyze and draft, write the ticket files after approval, then review them in rounds.
 
-## Goal
+**Success test:** an implementer given **one** ticket file and the repo can start, finish and prove the work without the parent ticket, a guessed file location, or a constraint that only appears in a sibling ticket. The procedure guards against two failures:
+- **Dropped requirement.** Steps 4 and 6 guard against it.
+- **Leaking seam**, a defect the split itself creates. Examples: a constraint placed in a ticket that can't act on it; two tickets editing one file with neither saying so; an acceptance criterion that contradicts its own implementation steps. Each ticket reads fine alone. Step 11 guards against it.
 
-Produce the smallest set of tickets that each ship on their own, and make every one of them survive being handed to someone who has nothing else.
+## Contract
 
-The measure is not that the task got split. It is that an implementer given **one** of these files and the repository can start, finish and prove the work without opening the parent ticket, guessing a file location, or discovering halfway through that a constraint they needed lives in a sibling ticket they were never given.
-
-Two failure modes the whole procedure exists to prevent:
-
-- **A dropped requirement** - the split loses something the original carried. Steps 4 and 6 are the guard: inventory every requirement, then prove coverage in a table.
-- **A leaking seam** - the split *itself* creates the defect. A constraint stated in the ticket that cannot act on it; two tickets editing the same file with neither saying so; an acceptance criterion that contradicts its own implementation steps. Nothing in the source ticket is wrong; the division introduced the bug. Step 11 is the guard.
-
-The second failure mode is the one that goes unnoticed, because every individual ticket reads fine on its own.
-
-## Non-negotiable contract
-
-- **Never write to Jira.** No create, comment, transition, link or assign. The tickets are delivered as Markdown files under the project's `feature-docs/` for the user to paste. Reading - fetching an issue, searching, following links - is fine.
-- **Do not implement.** No source edits, no tests, no refactoring. The only files this skill writes are the `feature-docs/` ticket Markdown, and only after the plan is approved.
-- **Preserve every original requirement.** Inventory them first, then prove coverage with a traceability table. A requirement that lands in no subtask is a bug in the split, not a scope decision.
-- **Do not invent missing details.** No fabricated endpoints, field names, table names, thresholds or acceptance numbers. Anything the source does not state and the code does not show becomes an open question - and every open question gets answered before the tickets are final.
-- **Never leave an open question unasked.** Every one is closed by the code or by the user. Anything the repository cannot settle goes to the user with AskUserQuestion, and every such question offers **defer** as an explicit choice. A question may stay open in a ticket only because the user consciously deferred it, never because it was not put to them. See Step 8.
-- **Maximum three subtasks. Fewer is better.** Two good tickets beat three thin ones. One is a valid answer.
-- **No split when a split adds nothing.** Say so plainly, output the single tightened ticket, and give the reason.
-- **File locations only when verified.** A `path/File.kt:NN` in a ticket must come from a real read or grep of the checked-out code. When the code was not consulted or the area lives in another repo, write the step behaviourally and mark the location unconfirmed.
-- **Leave pipeline noise out of ticket text.** No codegen steps, formatter passes, lockfile refreshes, regenerated docs or diagrams, CI reruns or PR checklists. A schema/contract version bump, a per-environment config key and a migration that must be run do stay - a person decides those.
+- **Never write to Jira.** Reads are fine.
+- **Do not implement.** The only files you write are the `feature-docs/` tickets, after approval.
+- **Preserve every requirement,** and prove it with the traceability table. An unmapped requirement is a bug in the split.
+- **Invent nothing.** No endpoints, fields, tables, thresholds or numbers the source and the code don't show. An unknown becomes an open question.
+- **Close every open question** from the code or by asking the user, with **defer** always offered (Step 8).
+- **At most three subtasks; fewer is better.** One ticket is a valid answer. If a split adds nothing, say why and output the single tightened ticket.
+- **Use `path/File.kt:NN` only when verified** by a read or grep this session. Otherwise describe the behavior and mark the location unconfirmed.
+- **Keep pipeline noise out of tickets**: codegen, formatters, lockfiles, regenerated docs or diagrams, CI reruns, PR checklists. Keep human decisions: a schema or contract version bump, a per-environment config key, a migration that must be run.
 
 ## Arguments
 
-Invoked as `/split-task [EPIC-KEY] <TARGET-KEY> [hints...]`, or with `epic=<EPIC-KEY>`.
+`/split-task [EPIC-KEY] <TARGET-KEY> [hints...]` or `epic=<KEY>`. With an epic, this is **mode A**; without one, **mode B**. Two bare keys mean epic then target. Hints can be a pasted ticket body, a constraint, or a preferred seam.
 
-- `TARGET-KEY` - the task to split.
-- `EPIC-KEY` / `epic=<KEY>` - optional parent epic. Present means **mode A**; absent means **mode B**.
-- Free text - a pasted ticket body (Jira unreachable), a constraint ("must ship behind a flag"), or a preferred seam.
+**With no arguments, ask; don't guess.** Use AskUserQuestion to pick the mode (Epic + task, or Task only), then ask for the key(s). If the branch name matches `(^|/)[A-Z][A-Z0-9]+-[0-9]+`, name that key in the option as a suggestion, never as a silent default. If Jira is unavailable, accept pasted text. Never split a task the user didn't name.
 
-Two bare keys without `epic=` means the first is the epic and the second the target.
+## Step 1: Fetch the target
 
-**Called with no arguments, prompt - do not guess.** Ask with AskUserQuestion which input mode applies:
+Discover which Jira read tools are available and satisfy their requirements (a cloud/site ID resolved once, markdown format, an explicit field list). If none are available, use pasted content or stop and request it. Fetch `summary`, `description`, `comment`, `status`, `issuetype`, `parent`, `attachment`, `issuelinks`. Read the comments, which often carry scope cuts and overriding decisions. Follow `blocks`/`is-blocked-by` and `duplicates` links.
 
-- **Epic + task** (mode A) - then ask for both keys.
-- **Task only** (mode B) - then ask for the one key.
+## Step 2: Epic and siblings (mode A only; never invent a parent)
 
-Offer the branch's key as the suggested value when the current branch name carries one (`git branch --show-current`, regex `(^|/)[A-Z][A-Z0-9]+-[0-9]+`), naming it in the option so the user can confirm or override it - a branch key is a suggestion, never a silent default. If Jira is unavailable, the same prompt accepts pasted ticket text instead of a key. Never split a task the user did not name.
+1. Fetch the epic with the same fields.
+2. Search its children: `parent = <EPIC-KEY> ORDER BY created ASC`, falling back to `"Epic Link" = <EPIC-KEY>`, with fields `summary`, `status`, `issuetype`, `issuelinks`. Read the siblings whose area overlaps the target's; skim the rest.
+3. Record four things:
+   - **Wider scope:** don't scope past the epic.
+   - **Dependencies** in either direction.
+   - **Settled decisions:** constraints; don't reopen them.
+   - **Duplication:** never redo a sibling's work; shrink the target instead.
 
-## Step 1 - Fetch the target
+## Step 3: Ground in code
 
-Use the available Jira/Atlassian read tools to fetch the requested issues. If no Jira integration is available, use pasted ticket content; otherwise stop and request it. Tool names differ between environments - discover what is present rather than assuming a specific one, and satisfy whatever the tool requires (a site/cloud identifier resolved once and reused, a markdown response format, an explicit field list).
+Grep the endpoint, entity, enum, config key, error string or feature word; read the top hits and widen only as needed to verify the path. Find where the change enters, what it touches (controller, service, repository, entity, migration, event, job, flag) and what already exists. Map candidate seams: a migration, a flag, a new endpoint, a consumer, a read path versus a write path. Never guess a filename.
 
-Get at least: `summary`, `description`, `comment`, `status`, `issuetype`, `parent`, `attachment`, `issuelinks`. Read the **comments** - they routinely carry the scope cut, the decision that overrides the description, or the requirement nobody put in the body. Follow `blocks` / `is-blocked-by` and `duplicates` links.
+## Step 4: Inventory requirements
 
-## Step 2 (mode A only) - Review the epic and its siblings
+Number them `R1..Rn`: explicit asks, acceptance criteria, constraints from comments, and anything in the epic that binds the target. Keep each atomic. A requirement split across two subtasks was really two requirements. A constraint that holds whole for several subtasks stays one.
 
-Skip entirely in mode B; never invent a parent.
+## Step 5: Decide the split
 
-1. Fetch the epic itself (same fields) - its description holds the outcome the target must serve.
-2. List its children with the available issue-search tool: `parent = <EPIC-KEY> ORDER BY created ASC`, falling back to `"Epic Link" = <EPIC-KEY>` on older projects; fields `summary`, `status`, `issuetype`, `issuelinks`. Read the description of any sibling whose summary overlaps the target's area; skim the rest.
-3. Write down four things and carry them into the split:
-   - **Wider scope** - what the epic is actually delivering, so a subtask is not scoped past it.
-   - **Dependencies** - siblings that must land before or after, in either direction.
-   - **Settled decisions** - anything already chosen in an epic or sibling comment (a flag name, a table, a rejected approach). These are constraints, not options to reopen.
-   - **Duplication** - work a sibling already covers or already delivered. Never draft a subtask that redoes it; note the overlap and shrink the target instead.
+A subtask ships independently only if **all** of these hold:
+- It merges and deploys safely once its declared dependencies have shipped.
+- It leaves the system coherent: either user-visible value, or a complete dormant layer that is safely no-op (flagged, unreferenced, or additive schema).
+- Its acceptance criteria can be verified without a sibling.
+- It owns its files and decisions, with no conflicting edits to the same logic.
 
-## Step 3 - Ground the task in code
+Cut along outcome seams, not layers. Good seams: a migration plus its entity before the feature that reads it; an endpoint before its consumer; a flagged path before making it the default; one entity or flow of several. Never split code from tests, backend from frontend of one indivisible behavior, or implement from review.
 
-Targeted, not exhaustive. Grep the endpoint, entity, enum, config key, error string or feature word the task names; read only the top hits plus enough context to see the seam. Follow the path far enough to answer: where the change enters, what it touches (controller / service / repository / entity / migration / event / job / flag), and what already exists. Map the seams a split could cut along - a migration, a flag, a new endpoint, a consumer, a read path against a write path. Start with targeted searches, then inspect additional files only when needed to verify the execution path, dependencies, configuration, or proposed split. Never guess a filename.
+**Don't split** a single coherent change, sequential steps of one merge, anything that would leave a half-migrated schema or unflagged dead code, a split whose coordination costs more than it delivers, or a third ticket that would need invented scope.
 
-## Step 4 - Inventory the requirements
-
-Number every requirement the source states, `R1..Rn`: explicit asks, acceptance criteria, constraints from comments, and anything in the epic that binds the target. Keep each atomic - a requirement whose delivery has to be split across two subtasks was two requirements, while a constraint that holds whole for several subtasks stays one. This list is the contract for Step 6.
-
-## Step 5 - Decide the split
-
-A candidate subtask ships independently only if **all** of these hold:
-
-- It can be merged and deployed safely on its own when its declared dependencies have shipped.
-- It leaves the system coherent - either delivering user-visible value, or a complete dormant layer that is safely no-op (behind a flag, unreferenced, or additive schema).
-- Its acceptance criteria can be verified without a sibling being done.
-- It owns its files and its decisions; two subtasks do not edit the same logic in conflicting ways.
-
-Cut along **outcome seams**, not layers. Good seams: a migration plus its entity, shipping before the feature reads it; a new endpoint separate from the consumer that calls it; a flagged path separate from making it the default; one entity or flow when the task covers several. Never "write the code" / "write the tests", never backend / frontend halves of one indivisible behaviour, never "implement" / "review".
-
-**Do not split** when the task is a single coherent change; when the pieces are only sequential steps of one merge; when the split leaves a half-migrated schema or dead code with no flag; when coordination costs more than the split delivers; or when filling a third ticket would need invented scope. Then say so and output the single ticket, tightened.
-
-## Step 6 - Prove coverage
-
-Build the traceability table before writing any ticket; it goes in the output.
+## Step 6: Traceability table (before drafting; it goes in the output)
 
 | Req | From | Subtask(s) |
 |---|---|---|
@@ -98,13 +71,11 @@ Build the traceability table before writing any ticket; it goes in the output.
 | R2 | comment 2026-09-01 | 2 |
 | R3 | epic (backward compatibility) | 1, 2 |
 
-Every requirement must map to at least one subtask. Avoid duplication unless a cross-cutting constraint - such as backward compatibility or observability - legitimately applies to multiple subtasks. An unmapped `R` is a missing subtask or a dropped requirement, and dropping is not yours to decide - surface it.
+Every `R` maps to at least one subtask. Map to several only for real cross-cutting constraints, such as backward compatibility or observability. Surface any unmapped `R`; dropping it is not your decision.
 
-## Step 7 - Draft the tickets
+## Step 7: Draft the tickets
 
-One ticket per subtask, in delivery order. **Self-contained**: an agent given only that one ticket and the repo must be able to start. Repeat the context it needs instead of pointing at the parent; reference other tickets only as dependency keys. Concrete verbs - no "handle", "support" or "improve" without an object and a condition.
-
-Each ticket becomes its own Markdown file in the current project's `feature-docs/` folder (Step 10 writes them, after approval). Body:
+Write one ticket per subtask, in delivery order. Each is self-contained: repeat the context it needs, and reference other tickets only by dependency key. Use concrete verbs; never "handle", "support" or "improve" without an object and a condition.
 
 ```
 Summary: <imperative, outcome-shaped, 80 chars or less>
@@ -136,104 +107,65 @@ Open questions
 - <only questions the user explicitly deferred. Each names who can answer it, what it blocks, and what happens if nobody does. Never guessed, never unasked - see Step 8. Omit the whole section when none were deferred.>
 ```
 
-## Step 8 - Close every open question
+## Step 8: Close every open question
 
-**An open question is not a deliverable.** Every one is answered by the code or by the user before the tickets are final. Never hand over a ticket carrying a question nobody was asked.
+1. **Try the repo first.** Grep, read the migration, the validator behind the annotation, the workflow default, or the published POM. Never ask the user something the code settles.
+2. **Check project memory** for a recorded decision.
+3. **Ask the rest in one batched AskUserQuestion round.** These are questions that need authority or access: ownership, per-environment values, acceptable baselines, intended behavior, unassigned work. **Every question offers "defer."** Each option says what the answer implies, what happens if the question stays open, and who would answer it.
 
-Work each one in this order.
+Then fold the results in:
+- **Answered:** put the answer where the work is (scope, step, criterion or risk). Never list it under "Open questions" as answered.
+- **Deferred:** it stays, naming who can answer it, what it blocks, and what happens if nobody does. A deferred question without an owner is still unasked.
+- **Never close a question by guessing.** If one doesn't matter, say why; don't delete it silently.
 
-1. **Answer it from the repository first.** Most unknowns are unknown only because nobody looked. Grep it, read the migration, open the validator behind the annotation, check the workflow's default, read the published POM. A question the code can settle is not a question for the user, and asking it anyway wastes their attention on the ones that need it.
-2. **Check project memory before asking.** A recorded decision or a documented behaviour already answers some of them, and asking again invites the user to re-litigate something they settled.
-3. **Put the rest to the user, in one batched round.** Use AskUserQuestion, never a stream of separate prompts. These are the questions needing authority or access no repository records: who owns a release, which value is set in an environment, whether running a library below its tested baseline is acceptable, what the intended behaviour actually is, who will do a thing nobody is named for.
+## Step 9: Present, then ExitPlanMode
 
-**Every question you ask offers "defer" as an explicit option.** Deferring is a decision the user makes; silence is not. Give them enough to decide with in the option text: what each answer implies, what happens if it stays open, and who would have to answer it.
+1. **Verdict**: `Split into N` or `Keep as one ticket`, one sentence why, and the seam used.
+2. **Epic context** (mode A only): scope, dependencies, settled decisions, duplication. 4 lines at most.
+3. **Delivery order**: `1 -> 2 -> 3` and what forces it, or "independent, any order".
+4. **Traceability table.**
+5. **Ticket drafts.**
+6. **Question ledger**: what the code answered, what the user answered and where each answer now lives, and what was deferred with its owner. If nothing was deferred, say so in one line.
+7. **Files to be written.**
 
-Then fold the results back in:
+## Step 10: Write the files (after approval)
 
-- **An answered question stops being a question.** Put the answer where the work is - the scope section, the implementation step, the acceptance criterion, the risk row. Do not leave it in an "Open questions" list annotated as answered; that reads as still-unknown to the next person.
-- **A deferred question stays, and names its owner.** Say what the question is, **who** can answer it, what it blocks, and what happens if nobody does. A deferred question with no named owner is an unasked question wearing a hat.
-- **Nothing is closed by guessing**, and nothing is dropped because it was awkward to ask. If a question turns out not to matter, say why it does not matter - do not delete it silently.
+Write under `feature-docs/` at `git rev-parse --show-toplevel`, creating the folder if needed:
+- Split: `feature-docs/<TARGET-KEY>-split-<n>-<kebab-slug>.md`, where `<n>` is the delivery order.
+- No split: `feature-docs/<TARGET-KEY>-ticket-<kebab-slug>.md`.
+- Content: `# <KEY> - <Summary>`, then the full Step 7 body. No code fence, and no cross-file navigation beyond dependency keys.
+- If a path exists, ask before replacing it. Never stage or commit.
 
-A ticket ships with an "Open questions" section only when every entry in it is a question the user chose to leave open.
+List the paths and remind the user in one line that they paste the tickets into Jira themselves. Don't offer to create issues.
 
-## Step 9 - Present
+## Step 11: Review in rounds until they settle
 
-Output in this order, then call ExitPlanMode with it as the plan:
+Expect the first drafts to have real defects and several rounds to be needed. Offer a review after writing, and run one whenever asked. Each round: **re-read the files from disk** (never from memory), report findings, and apply them only on approval.
 
-1. **Verdict** - `Split into N` or `Keep as one ticket`, one sentence of why, and the seam used.
-2. **Epic context** (mode A only) - wider scope, dependencies, settled decisions, duplication found. 4 lines max.
-3. **Delivery order** - `1 -> 2 -> 3`, with what forces the order, or "independent, any order".
-4. **Traceability table** from Step 6.
-5. **The ticket drafts** from Step 7.
-6. **Question ledger** from Step 8 - what the code answered, what the user answered and where each answer now lives, and what they chose to defer with its owner. If nothing was deferred, say so in one line. An unasked question appearing here means Step 8 was skipped.
-7. **Files to be written** - the `feature-docs/` paths from Step 10.
+Report each finding as: its effect in one plain sentence, what the document says now, what it should say, why it matters, and the suggested change. Order findings most severe first. Also say plainly what is **not** a problem, and why.
 
-## Step 10 - Write the ticket files
+Give each round a different focus; don't repeat a previous sweep:
+1. **Cross-ticket coherence:** a constraint in a ticket whose implementer never opens that file while the editing ticket is silent; two tickets touching one file unflagged; false "Blocks:" lines; an acceptance criterion in a ticket where it can't be checked.
+2. **Your own fixes:** after any edit, re-read the **whole** ticket (Scope, Implementation, How to prove it, Acceptance criteria, Risks). A new step often contradicts Scope or a "nothing else" criterion.
+3. **Code you never opened,** usually the highest-yield round: the validator behind a cited annotation, the config around a quoted line, a helper whose behavior you asserted, a claimed workflow default.
 
-After the plan is approved (plan mode forbids writing before that), write each ticket from Step 7 as its own Markdown file under `feature-docs/` at the repo root (`git rev-parse --show-toplevel`). Create the folder if it does not exist.
+Continue while fresh material still yields findings. When a full round finds nothing new, say so; don't manufacture findings.
 
-- One file per subtask: `feature-docs/<TARGET-KEY>-split-<n>-<kebab-slug>.md`, `<n>` being the delivery order.
-- No split: one file, `feature-docs/<TARGET-KEY>-ticket-<kebab-slug>.md`.
-- File content is the ticket body from Step 7 - the whole body, paste-ready, with an `# <KEY> - <Summary>` heading on top. Do not wrap it in a code fence, and do not add cross-file navigation beyond the dependency keys the ticket already carries.
-- Never overwrite an existing file silently: if the path exists, say so and ask before replacing it.
-- Leave the files untracked. Do not `git add`, stage, or commit them.
-
-Then list the written paths, and close with one line reminding the user they paste these into Jira themselves. Do not offer to create the Jira issues.
-
-## Step 11 - Review the drafts in rounds, until they settle
-
-**Writing the files is not the end.** Expect the first drafts to carry real defects, and expect several rounds to be needed - each one finding things the last did not. Offer a review after writing, and run another whenever asked.
-
-Each round is the same loop: **re-read the files from disk**, verify what you carried rather than checked, report the findings, apply on approval. Re-read from disk every time - reviewing from memory of what you wrote is how a defect survives three passes.
-
-Report findings in the shape the user's rules require for review output: one plain sentence of effect, what the document says now, what it should say, why it matters, the suggested change. Most severe first. Say plainly when something is **not** a problem and why - that is as useful as a finding. Then ask before applying; do not edit on your own initiative.
-
-### What each round should hunt
-
-Rounds have different highest-yield targets. Do not repeat round 1's sweep three times.
-
-1. **Cross-ticket coherence.** The defects the split created. A constraint written into the ticket whose implementer never opens that file, while the ticket that *does* edit it says nothing. Two tickets touching the same file with neither flagging it. A "Blocks:" line claiming a dependency that does not exist. An acceptance criterion sitting in the wrong ticket to be checkable.
-2. **The fixes you just applied.** A fix routinely breaks its own ticket's coherence: an added implementation step that the Scope section does not list, or that contradicts an acceptance criterion saying the commit contains "nothing else". After every edit re-read the **whole** ticket - Scope, Implementation, How to prove it, Acceptance criteria, Risks - not just the paragraph you changed.
-3. **The code you never opened.** Consistently the highest-yield round. Go read the validator behind the annotation you cited, the config file above the line you quoted, the helper whose behaviour you asserted, the workflow you claimed defaults to something. Claims that were carried from the source ticket rather than verified are where the factual errors live.
-
-Keep going while a pass over previously-unexamined material is still finding things. Stop when a full round turns up nothing new, and say so rather than manufacturing a finding.
-
-### Standing checks, every round
-
-- **Verify or label.** Every `file:line`, count and version in a ticket is either verified this session or explicitly flagged as carried from the source. Never let a carried claim read as a checked one.
-- **Read project memory before writing guidance about a subsystem.** A memory file that already records how something works will contradict a draft written without it - a defect that was avoidable, not merely missed.
-- **Encoding.** Pure ASCII, no BOM, no code-fence wrapper around the body. Check after every editing round, including your own edits - it is easy to introduce a stray glyph in a warning line.
-- **Index untouched.** Never stage, unstage or commit the ticket files. If the user's tooling auto-stages them, say so and give them the command; do not run it.
-- **New unknowns get closed in the same round.** A review that turns up something the drafts assumed is a new open question - run it through Step 8 now (code first, then the user with a defer option), not into an "Open questions" list. Likewise re-check that every previously deferred question still names an owner and still says what it blocks.
+**Every round:**
+- Every `file:line`, count and version is either verified this session or labeled as carried from the source.
+- Read project memory before writing guidance about a subsystem.
+- Pure ASCII, no BOM, no fence around the body. Re-check after every edit.
+- Never stage, unstage or commit. If tooling auto-stages the files, tell the user the command to run.
+- Send new unknowns through Step 8 now. Re-check that each deferred question still names an owner and what it blocks.
 
 ## Usage
 
-**Mode A - epic plus target** (reviews the epic and its siblings first):
-
 ```
-/split-task epic=STR-652 STR-660
-/split-task STR-652 STR-660
+/split-task epic=STR-652 STR-660                      # mode A
+/split-task STR-652 STR-660                           # mode A
 /split-task epic=STR-758 STR-787 must stay behind a flag
-```
-
-**Mode B - target only** (analyzed standalone):
-
-```
-/split-task STR-539
+/split-task STR-539                                   # mode B
 /split-task STR-448 the idle-tracking write path is already merged
+/split-task                                           # prompts for mode and key(s)
+review the split documents again                      # one more Step 11 round, from disk
 ```
-
-**No arguments** - prompts for the mode, then the key(s), suggesting the branch's key if it has one:
-
-```
-/split-task
-```
-
-**Reviewing drafts that already exist** (step 11) - no key needed; the drafts are the input:
-
-```
-review the split documents again
-review the updated documents
-```
-
-Each such request is one more round. Run it against the files on disk, not against the drafts as you remember writing them, and pick the round's focus from "What each round should hunt" rather than repeating the previous sweep.

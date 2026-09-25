@@ -5,8 +5,4 @@ argument-hint: "What will the next session be used for?"
 disable-model-invocation: true
 ---
 
-Write a handoff document summarizing the current conversation so a fresh agent can continue the work. Save to the current workspace.
-
-Do not duplicate content already captured in other artifacts (specs, plans, ADRs, issues, commits, diffs). Reference them by path or URL instead.
-
-If the user passed arguments, treat them as a description of what the next session will focus on and tailor the doc accordingly.
+Write a handoff document, saved in the current workspace, that lets a fresh agent continue this conversation's work. Reference existing artifacts (specs, plans, ADRs, issues, commits, diffs) by path or URL instead of repeating them. Arguments, if given, describe the next session's focus; tailor the doc to it.
