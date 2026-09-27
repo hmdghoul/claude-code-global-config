@@ -3,10 +3,87 @@
     "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
   },
   "permissions": {
-    "defaultMode": "bypassPermissions",
-    "additionalDirectories": [
-      "~/source",
-      "~/.claude"
+    "allow": [
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git blame:*)",
+      "Bash(git grep:*)",
+      "Bash(git shortlog:*)",
+      "Bash(git describe:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git rev-list:*)",
+      "Bash(git merge-base:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git ls-remote:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git cat-file:*)",
+      "Bash(git show-ref:*)",
+      "Bash(git for-each-ref:*)",
+      "Bash(git name-rev:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git count-objects:*)",
+      "Bash(git version)",
+      "Bash(git --version)",
+      "Bash(git reflog)",
+      "Bash(git reflog show:*)",
+      "Bash(git branch)",
+      "Bash(git branch -a)",
+      "Bash(git branch -r)",
+      "Bash(git branch -v)",
+      "Bash(git branch -vv)",
+      "Bash(git branch --show-current)",
+      "Bash(git tag)",
+      "Bash(git remote)",
+      "Bash(git remote -v)",
+      "Bash(git remote show:*)",
+      "Bash(git remote get-url:*)",
+      "Bash(git config --get:*)",
+      "Bash(git config --list)",
+      "Bash(git worktree list:*)",
+      "PowerShell(git fetch:*)",
+      "PowerShell(git pull:*)",
+      "PowerShell(git status:*)",
+      "PowerShell(git log:*)",
+      "PowerShell(git diff:*)",
+      "PowerShell(git show:*)",
+      "PowerShell(git blame:*)",
+      "PowerShell(git grep:*)",
+      "PowerShell(git shortlog:*)",
+      "PowerShell(git describe:*)",
+      "PowerShell(git rev-parse:*)",
+      "PowerShell(git rev-list:*)",
+      "PowerShell(git merge-base:*)",
+      "PowerShell(git ls-files:*)",
+      "PowerShell(git ls-remote:*)",
+      "PowerShell(git ls-tree:*)",
+      "PowerShell(git cat-file:*)",
+      "PowerShell(git show-ref:*)",
+      "PowerShell(git for-each-ref:*)",
+      "PowerShell(git name-rev:*)",
+      "PowerShell(git check-ignore:*)",
+      "PowerShell(git count-objects:*)",
+      "PowerShell(git version)",
+      "PowerShell(git --version)",
+      "PowerShell(git reflog)",
+      "PowerShell(git reflog show:*)",
+      "PowerShell(git branch)",
+      "PowerShell(git branch -a)",
+      "PowerShell(git branch -r)",
+      "PowerShell(git branch -v)",
+      "PowerShell(git branch -vv)",
+      "PowerShell(git branch --show-current)",
+      "PowerShell(git tag)",
+      "PowerShell(git remote)",
+      "PowerShell(git remote -v)",
+      "PowerShell(git remote show:*)",
+      "PowerShell(git remote get-url:*)",
+      "PowerShell(git config --get:*)",
+      "PowerShell(git config --list)",
+      "PowerShell(git worktree list:*)"
     ],
     "deny": [
       "Bash(git stage:*)",
@@ -43,6 +120,11 @@
     "ask": [
       "Bash(git push:*)",
       "PowerShell(git push:*)"
+    ],
+    "defaultMode": "bypassPermissions",
+    "additionalDirectories": [
+      "~/source",
+      "~/.claude"
     ]
   },
   "defaultShell": "powershell",
@@ -54,7 +136,8 @@
     "csharp-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
     "kotlin-lsp@claude-plugins-official": true,
-    "eli5@claude-community": true
+    "eli5@claude-community": true,
+    "frontend-design@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "claude-community": {
@@ -71,7 +154,7 @@
       "effortLevel": "medium"
     },
     "claude-opus-5-5": {
-      "effortLevel": "medium"
+      "effortLevel": "high"
     },
     "claude-fable-5-1": {
       "effortLevel": "high"
