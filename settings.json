@@ -150,7 +150,7 @@
   },
   "outputStyle": "Concise",
   "modelSettings": {
-    "claude-sonnet-5": {
+    "claude-sonnet-5-5": {
       "effortLevel": "medium"
     },
     "claude-opus-5-5": {
@@ -168,5 +168,6 @@
   "autoCompactEnabled": true,
   "remoteControlAtStartup": false,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "model": "opus"
 }

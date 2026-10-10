@@ -1,10 +1,10 @@
 ---
 name: sync-repos
-description: Sweep a parent folder of sibling Git repos — switch each to staging, fast-forward pull, and report branch, stash and uncommitted state in one table.
+description: Sweep a parent folder of sibling Git repos — switch each to its default branch, fast-forward pull, and report branch, stash and uncommitted state in one table.
 disable-model-invocation: true
 ---
 
-Switch every Git repo directly under a parent folder to `staging`, fast-forward pull it, and report the results in one table. Invoking this skill approves checkout and pull without confirmation. It also approves the step 4 prune, but only to recover a pull blocked by a ref conflict; that deletes only remote-tracking pointers for branches the remote already deleted. The skill never commits, pushes, stashes, resets or merges. If a step fails in a way not covered here, stop and report. Do not improvise.
+Switch every Git repo directly under a parent folder to its default branch (whatever `origin/HEAD` points at on the remote), fast-forward pull it, and report the results in one table. Invoking this skill approves checkout and pull without confirmation. It also approves the step 4 prune, but only to recover a pull blocked by a ref conflict; that deletes only remote-tracking pointers for branches the remote already deleted. The skill never commits, pushes, stashes, resets or merges. If a step fails in a way not covered here, stop and report. Do not improvise.
 
 The argument is the parent folder (e.g. `/sync-repos C:\Users\Ahmad\source\repos\ananinja`). If it is missing, ask. Do not fall back to the working directory.
 
@@ -18,18 +18,20 @@ The argument is the parent folder (e.g. `/sync-repos C:\Users\Ahmad\source\repos
    git -C <repo> diff --name-only                   # unstaged
    git -C <repo> ls-files --others --exclude-standard   # untracked
    git -C <repo> stash list
-   git -C <repo> rev-parse --verify --quiet refs/remotes/origin/staging
+   git -C <repo> ls-remote --symref origin HEAD     # default branch: "ref: refs/heads/<default> HEAD"
    ```
+
+   The default branch is the name after `refs/heads/` in the `ls-remote` output. Ask the remote, because the local `origin/HEAD` is set at clone time and goes stale if the default changes later. If `ls-remote` fails (offline, auth), fall back to `git -C <repo> symbolic-ref --short refs/remotes/origin/HEAD` and strip the `origin/` prefix. Never run `git remote set-head`; it writes a ref.
 
 3. **Decide what each repo gets:**
    - **Staged or unstaged changes:** skip the repo entirely (no checkout, pull or stash). Record `SKIPPED — dirty` and list the file names. Untracked files alone don't count as dirty; report their count and proceed.
-   - **`origin/staging` exists:** check out `staging`, then pull.
-   - **No `origin/staging`:** pull the repo's default branch and flag it in the report.
+   - **Default branch not resolved by either command:** skip the repo. Record `FAILED — no default branch`.
+   - **Otherwise:** check out the default branch, then pull.
 
-4. **Switch and pull.** Skip the checkout if the repo is already on the target branch:
+4. **Switch and pull.** Skip the checkout if the repo is already on its default branch:
 
    ```bash
-   git -C <repo> checkout staging
+   git -C <repo> checkout <default>
    git -C <repo> pull --ff-only
    ```
 
@@ -58,12 +60,12 @@ The argument is the parent folder (e.g. `/sync-repos C:\Users\Ahmad\source\repos
 
 5. **Re-survey every repo and report** one row per repo:
 
-   | Repo | Branch now | Result | Staged | Unstaged | Untracked | Stash |
+   | Repo | Default | Branch now | Result | Staged | Unstaged | Untracked | Stash |
 
-   `Result` is one of `up to date`, `pulled`, `pulled after prune`, `SKIPPED — dirty`, `FAILED — diverged`, `FAILED — checkout blocked` or `FAILED — fetch blocked`. Mark repos left on a non-`staging` default branch, and name the branch a repo was moved off if it didn't start there.
+   `Result` is one of `up to date`, `pulled`, `pulled after prune`, `SKIPPED — dirty`, `FAILED — no default branch`, `FAILED — diverged`, `FAILED — checkout blocked` or `FAILED — fetch blocked`. Name the branch a repo was moved off if it didn't start on its default.
 
    Under the table, list only what needs action. For each category, say "none" rather than omitting it:
    - Skipped or failed repos: the files involved and the one next command to run.
    - Existing stashes, per repo. `git status` doesn't show them.
-   - Repos pulled on a default branch instead of `staging`.
+   - Repos whose default branch came from the local `origin/HEAD` fallback rather than the remote.
    - Prunes: how many refs were removed, plus every ref deleted individually to break a case collision.
