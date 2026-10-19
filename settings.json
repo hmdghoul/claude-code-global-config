@@ -127,6 +127,7 @@
       "~/.claude"
     ]
   },
+  "model": "opus",
   "defaultShell": "powershell",
   "statusLine": {
     "type": "command",
@@ -168,6 +169,5 @@
   "autoCompactEnabled": true,
   "remoteControlAtStartup": false,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "model": "opus"
+  "skipAutoPermissionPrompt": true
 }
