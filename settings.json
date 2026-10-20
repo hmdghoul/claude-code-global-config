@@ -130,7 +130,7 @@
   "hooks": {
     "PermissionRequest": [
       {
-        "matcher": "*",
+        "matcher": "Bash|PowerShell|Read|Glob|Grep",
         "hooks": [
           {
             "type": "command",
