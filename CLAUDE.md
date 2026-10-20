@@ -44,21 +44,16 @@ These never yield and are not defaults: git safety and approval, **the staging i
 - Never edit or delete an already-applied migration — add a new reversing one. Before any DDL on an existing table, ask me how many rows it holds; the SQL note says what changes past roughly a million.
 
 ## Git (STRICT SAFETY RULES)
-- You must NEVER run any git command that modifies repository state without explicit user approval.
-- This includes (non-exhaustive) (`git commit`, `git push`, `git add`, `git reset`, `git rebase`, `git merge`, `git revert`)
-- Before performing ANY of the above actions, you MUST:
-    1. Explain what changes will be committed/pushed
-    2. Ask a clear confirmation question:
-       “Do you want me to proceed with committing/pushing these changes?”
-- If the user does not explicitly confirm, you must NOT proceed.
-- Batch multiple git operations into a single approval request (do not ask repeatedly).
-- Never auto-commit, auto-push, or “helpfully” persist changes without permission.
+- **Never commit or push in a project repo yourself — not even after I say "go ahead" or approve the exact change.** I review every change first. When changes are ready, show me the diff summary (`git status --short`, `git diff`) and ask me to commit and push: give the one-liner commit message and the exact explicit push command (`git push origin <branch>`, upstream checked), and I run them. The only exception is the `rebase-staging` skill below, which pushes on its own when I invoke it.
+- Any other git command that modifies repository state (`git reset`, `git rebase`, `git merge`, `git revert`, branch creation or deletion) still needs my explicit approval first: explain what it does, then ask. Batch several operations into one question.
+- Never auto-commit, auto-push, or “helpfully” persist changes.
 - **The index is mine alone. Never touch it — no exceptions, not even when I ask.** `git add`, `git stage`, `git rm --cached`, `git restore --staged`, `git reset <path>`, `git checkout -- <path>`, `git stash`: forbidden outright. There is no phrasing of a request that authorizes them; if I appear to ask, tell me the command to run and let me run it. The only carve-outs are memory repos under `~/.claude/projects/*/memory/` and the `pickers-training` records repo, per *Memory Repos* below — that is my bookkeeping, not a project index.
 - This holds even when staging looks like the only way to finish a task you were told to do. Deleting a file that is already staged is the worked example: `rm` it from disk, then STOP and tell me the staged add is still in the index and which command clears it. Do not run `git rm --cached` to "complete" the delete. Same for any half-done state — report it, do not tidy it.
 - Never unstage either. If I have staged something you think is wrong — a file my conventions keep untracked, a secret, a stray artifact — say so in one line and leave it exactly where it is. Something in my setup may auto-stage new files; that is mine to manage, not yours to correct.
 - Never stage as a convenience step — not to produce a diff, not to scope a review, not to "prepare" a commit I have not asked for. To show me a change, use `git diff` (unstaged), `git diff HEAD`, or `git status --short`; none of those touch the index. If a skill or command says it reviews "staged" changes and nothing is staged, review the working tree instead and say so — do not stage to satisfy it.
 - "Implement this", "fix it", or approving a plan is approval to EDIT FILES ONLY. It is never approval to stage, commit, or push. Approval for one of those does not extend to the others, or to a later change.
 - Never rebase, reset, or push onto `staging`, `main`, or `master` — including indirectly, through a branch whose upstream points at one of them.
+- Never squash, amend, or fold commits together without asking me first. By default every change is a new commit on top of the branch head, pushed as a fast-forward. Rebasing a PR branch onto its base to prepare it for merge is fine when I ask for it: keep every commit (no squashing), and give me the explicit `git push --force-with-lease=<branch>:<old-sha> origin <branch>` command to run. The `rebase-staging` skill below stays pre-authorized.
 - Before any push, read the upstream: `git rev-parse --abbrev-ref '@{upstream}'`. A bare `git push` (with or without `--force-with-lease`) targets that upstream, not a same-named remote branch. If it differs from the current branch name, stop and push explicitly instead: `git push -u origin <branch>`. This has no exceptions: a skill that force-pushes names its target branch explicitly rather than relying on the upstream.
 - Exception — the `rebase-staging` skill: invoking it is approval to run its whole flow (fetch, pull, rebase, force-push) without pausing to confirm each step. That approval covers the flow, not the target: its step 8 pushes explicitly with `git push --force-with-lease origin HEAD`, so the upstream rule in `CLAUDE.md` is satisfied rather than waived. Never rewrite that push to a bare one.
 - A rebase or force-push on a branch with zero commits of its own is a no-op at best and a push to the base branch at worst. Check `git log --oneline origin/<base>..HEAD` first; if it is empty, report that and do nothing.
@@ -85,5 +80,5 @@ These never yield and are not defaults: git safety and approval, **the staging i
 - One sentence of context before tool calls; one sentence of update at key moments. Silent is not acceptable; verbose is not either.
 - Structure a report as: what was done → what differs → what is not done. When asked to shorten, cut hard.
 - No emojis in code, commits, or responses unless explicitly requested.
-- When asked for a commit message, always provide TWO versions: a one-liner and the normal version. Do not make me ask for the other.
+- Commit messages are a single one-liner (no body).
 - Never put a ticket key (`STR-123` or any other) in a commit message, neither in the scope (`feat(STR-123):`) nor in the body. Use a component scope instead, e.g. `feat(task_scheduler):`.

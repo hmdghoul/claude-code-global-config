@@ -127,6 +127,21 @@
       "~/.claude"
     ]
   },
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/hooks/plan-mode-auto-allow.js\"",
+            "timeout": 10,
+            "statusMessage": "Plan mode: auto-approving"
+          }
+        ]
+      }
+    ]
+  },
   "model": "opus",
   "defaultShell": "powershell",
   "statusLine": {
@@ -169,5 +184,6 @@
   "autoCompactEnabled": true,
   "remoteControlAtStartup": false,
   "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "skipWorkflowUsageWarning": true
 }
