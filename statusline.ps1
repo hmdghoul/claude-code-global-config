@@ -14,7 +14,7 @@ $cwd = $inputJson.cwd
 $folderName = if ($cwd) { Split-Path $cwd -Leaf } else { (Get-Location).Path | Split-Path -Leaf }
 
 $modelName = $inputJson.model.display_name
-if (-not $modelName) { $modelName = $inputJson.model }
+if (-not $modelName -and $inputJson.model -is [string]) { $modelName = $inputJson.model }
 
 $effort = $inputJson.effort.level
 
@@ -44,12 +44,13 @@ if ($resetAt) {
 
 $branchName = ""
 $stashText = ""
+$gitDir = if ($cwd) { $cwd } else { (Get-Location).Path }
 try {
-    git rev-parse --is-inside-work-tree 2>&1 | Out-Null
+    git -C $gitDir rev-parse --is-inside-work-tree 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) {
-        $branch = (git branch --show-current).Trim()
+        $branch = (git -C $gitDir branch --show-current).Trim()
         if ($branch) { $branchName = " ${CYAN}[$branch]${RESET}" }
-        $stashCount = @(git stash list).Count
+        $stashCount = @(git -C $gitDir stash list).Count
         if ($stashCount -gt 0) { $stashText = " ${YELLOW}stash:${stashCount}${RESET}" }
     }
 } catch { $branchName = ""; $stashText = "" }
