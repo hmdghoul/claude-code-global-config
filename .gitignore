@@ -9,6 +9,8 @@
 !README.md
 !LICENSE
 
+!hooks/
+!hooks/*
 !rules/
 !rules/*
 !commands/
