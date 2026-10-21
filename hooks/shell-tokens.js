@@ -31,6 +31,7 @@ const GIT_LIST_FORM_CHECKS = {
   },
   reflog: rest => rest.length === 0 || !['expire', 'delete', 'drop'].includes(rest[0]),
   worktree: rest => rest[0] === 'list',
+  stash: rest => rest[0] === 'list' || rest[0] === 'show',
   config: rest => {
     if (rest[0] === 'get' || rest[0] === 'list') {
       return true;
