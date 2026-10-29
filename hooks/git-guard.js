@@ -11,12 +11,18 @@ const ALLOWED_SUBCOMMANDS = new Set([
 ]);
 const BRANCH_LIST_FLAGS = ['-a', '-r', '-v', '-vv', '-l', '--list', '--all', '--remotes', '--show-current'];
 const SWITCH_RISKY_FLAGS = ['-C', '--force-create', '-f', '--force', '--discard-changes', '--orphan', '-m', '--merge'];
+const CONFIG_SCOPE_FLAGS = ['--global', '--system', '--local', '--worktree'];
+const CONFIG_READ_FORMS = ['--get', '--get-all', '--list', '-l', 'get', 'list'];
 const ALLOWED_FORMS = {
   stash: rest => rest[0] === 'list' || rest[0] === 'show',
   branch: rest => rest.every(arg => BRANCH_LIST_FLAGS.includes(arg)),
   tag: rest => rest.length === 0 || rest[0] === '-l' || rest[0] === '--list',
   remote: rest => rest.length === 0 || (rest.length === 1 && rest[0] === '-v') || rest[0] === 'show' || rest[0] === 'get-url',
-  config: rest => ['--get', '--get-all', '--list', '-l', 'get', 'list'].includes(rest[0]),
+  // A lone key (`git config core.autocrlf`) reads it like --get; a key plus a value writes.
+  config: rest => {
+    const args = rest.filter(arg => !CONFIG_SCOPE_FLAGS.includes(arg));
+    return CONFIG_READ_FORMS.includes(args[0]) || (args.length === 1 && !args[0].startsWith('-'));
+  },
   worktree: rest => rest[0] === 'list',
   reflog: rest => rest.length === 0 || rest[0] === 'show',
   switch: rest => !rest.some(arg => SWITCH_RISKY_FLAGS.includes(arg)),

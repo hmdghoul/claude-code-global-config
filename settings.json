@@ -44,6 +44,7 @@
       "Bash(git remote get-url:*)",
       "Bash(git config --get:*)",
       "Bash(git config --list)",
+      "Bash(git config core.autocrlf)",
       "Bash(git worktree list:*)",
       "PowerShell(git fetch:*)",
       "PowerShell(git pull:*)",
@@ -84,6 +85,7 @@
       "PowerShell(git remote get-url:*)",
       "PowerShell(git config --get:*)",
       "PowerShell(git config --list)",
+      "PowerShell(git config core.autocrlf)",
       "PowerShell(git worktree list:*)"
     ],
     "deny": [
