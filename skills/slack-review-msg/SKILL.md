@@ -46,8 +46,7 @@ The Bullets wording rules still apply.
 
 Hi team, release is ready for review: {pr_url}
 
-*[Short title from the release contents]*
-
+**[Short title from the release contents]**
 • [Merged PR 1]
 • [Merged PR 2]
 • [Merged PR 3]
@@ -56,8 +55,7 @@ Hi team, release is ready for review: {pr_url}
 
 Hi team, need your review: {pr_url} | {jira_numbers}
 
-*[Short title from the code context]*
-
+**[Short title from the code context]**
 • [Change 1]
 • [Change 2]
 • [Change 3]
@@ -69,8 +67,7 @@ Hi team, need your review: {jira_numbers}
 {Label} — {pr_url}
 {Label} — {pr_url}
 
-*[Short title from the code context]*
-
+**[Short title from the code context]**
 • [Change 1]
 • [Change 2]
 • [Change 3]
@@ -79,8 +76,7 @@ Hi team, need your review: {jira_numbers}
 
 Hi team, this PR is still waiting for review — please take a look when you can: {pr_url} | {jira_numbers}
 
-*[Short title from the code context]*
-
+**[Short title from the code context]**
 • [Change 1]
 • [Change 2]
 • [Change 3]
@@ -92,8 +88,7 @@ Hi team, these PRs are still waiting for review — please take a look when you 
 {Label} — {pr_url}
 {Label} — {pr_url}
 
-*[Short title from the code context]*
-
+**[Short title from the code context]**
 • [Change 1]
 • [Change 2]
 • [Change 3]
