@@ -19,6 +19,9 @@
 !skills/*
 !skills/*/*
 !skills/*/*/*
+!scripts/
+!scripts/claude-mem-import/
+!scripts/claude-mem-import/convert.mjs
 
 skills/synced/
 skills/synced/*

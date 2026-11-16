@@ -1,7 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
-    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1"
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1",
+    "CLAUDE_MEM_TELEMETRY": "0"
   },
   "permissions": {
     "allow": [
@@ -137,19 +138,26 @@
     "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$HOME/.claude/statusline.ps1\""
   },
   "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
     "csharp-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
     "kotlin-lsp@claude-plugins-official": true,
+    "cc-plugin-you-should-know@builtin": true,
     "eli5@claude-community": true,
-    "frontend-design@claude-plugins-official": true
+    "claude-mem@thedotmack": true
   },
   "extraKnownMarketplaces": {
     "claude-community": {
       "source": {
         "source": "github",
         "repo": "anthropics/claude-plugins-community"
-      },
-      "autoUpdate": false
+      }
+    },
+    "thedotmack": {
+      "source": {
+        "source": "github",
+        "repo": "thedotmack/claude-mem"
+      }
     }
   },
   "outputStyle": "Concise",
@@ -168,10 +176,10 @@
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "skipAutoPermissionPrompt": true,
   "theme": "dark",
   "autoCompactEnabled": true,
   "remoteControlAtStartup": false,
-  "agentPushNotifEnabled": true,
-  "skipAutoPermissionPrompt": true,
-  "skipWorkflowUsageWarning": true
+  "agentPushNotifEnabled": true
 }
