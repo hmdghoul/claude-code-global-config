@@ -38,7 +38,9 @@
       "Bash(git branch -v)",
       "Bash(git branch -vv)",
       "Bash(git branch --show-current)",
+      "Bash(git checkout --:*)",
       "Bash(git tag)",
+      "Bash(git stash:*)",
       "Bash(git remote)",
       "Bash(git remote -v)",
       "Bash(git remote show:*)",
@@ -79,7 +81,9 @@
       "PowerShell(git branch -v)",
       "PowerShell(git branch -vv)",
       "PowerShell(git branch --show-current)",
+      "PowerShell(git checkout --:*)",
       "PowerShell(git tag)",
+      "PowerShell(git stash:*)",
       "PowerShell(git remote)",
       "PowerShell(git remote -v)",
       "PowerShell(git remote show:*)",
@@ -114,16 +118,12 @@
     "ask": [
       "Bash(git push:*)",
       "Bash(git stage:*)",
-      "Bash(git stash:*)",
       "Bash(git rm --cached:*)",
       "Bash(git restore --staged:*)",
-      "Bash(git checkout --:*)",
       "PowerShell(git push:*)",
       "PowerShell(git stage:*)",
-      "PowerShell(git stash:*)",
       "PowerShell(git rm --cached:*)",
-      "PowerShell(git restore --staged:*)",
-      "PowerShell(git checkout --:*)"
+      "PowerShell(git restore --staged:*)"
     ],
     "defaultMode": "bypassPermissions",
     "additionalDirectories": [

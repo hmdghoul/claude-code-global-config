@@ -15,6 +15,8 @@ const OUT = process.argv[2];
 // Batch label goes into the synthetic session id. claude-mem 15.x tombstones deleted
 // sessions and refuses to re-import them, so a redo after a delete needs a new label.
 const BATCH = process.argv[3] || 'b1';
+// Third argument "feedback" exports only feedback memories, which the default run skips.
+const FEEDBACK_ONLY = process.argv[4] === 'feedback';
 if (!OUT) { console.error('usage: node convert.mjs <outDir> [batchLabel]'); process.exit(1); }
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -201,7 +203,8 @@ for (const folder of fs.readdirSync(ROOT).sort()) {
     if (!parsed) { report.skipped.push({ folder, file, reason: 'no frontmatter' }); continue; }
     const { fm, body } = parsed;
     const memType = fm.type || 'unknown';
-    if (memType === 'feedback') { pr.feedbackKept.push(file); tot.feedbackKept++; continue; }
+    if (FEEDBACK_ONLY && memType !== 'feedback') { continue; }
+    if (memType === 'feedback' && !FEEDBACK_ONLY) { pr.feedbackKept.push(file); tot.feedbackKept++; continue; }
 
     const name = fm.name || file.replace(/\.md$/, '');
     const description = fm.description || null;

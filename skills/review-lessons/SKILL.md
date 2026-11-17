@@ -77,14 +77,6 @@ node ~/.claude/skills/review-lessons/scripts/render.js \
 
 Send the file to the user and report what was done, what differs from a plain reading of the request, and what is still weak, including the `residualConcerns`.
 
-## Step 7: Offer reconciliation, then stop
-
-If `~/.claude/skills/review-lessons-reconcile/` exists, end the report with:
-
-> Do you want me to run `review-lessons-reconcile` to check these against your global rules and this project's memory, and propose what to add or update?
-
-Ask and wait; never run it uninvited. If the user hasn't seen it before, explain in one line: it reports which lessons are already covered, which to add and where, which belong in project memory, and which conflict with a recorded decision. It only proposes, and nothing is written without a second approval.
-
 ## Notes
 
 - Before a full rebuild, warn about the cost: about one GraphQL page per 25 PRs, and a few hundred thousand agent tokens once the corpus exceeds a thousand comments.

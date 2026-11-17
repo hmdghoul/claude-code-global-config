@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 Switch every Git repo directly under a parent folder to its default branch (whatever `origin/HEAD` points at on the remote), fast-forward pull it, and report the results in one table. Invoking this skill approves checkout and pull without confirmation. It also approves the step 4 prune, but only to recover a pull blocked by a ref conflict; that deletes only remote-tracking pointers for branches the remote already deleted. The skill never commits, pushes, stashes, resets or merges. If a step fails in a way not covered here, stop and report. Do not improvise.
 
-The argument is the parent folder (e.g. `/sync-repos C:\Users\Ahmad\source\repos\ananinja`). If it is missing, ask. Do not fall back to the working directory.
+The argument is the parent folder (e.g. `/sync-repos ~/source/repos/ananinja`, with `~` resolved to the home directory). If it is missing, ask. Do not fall back to the working directory.
 
 1. **Discover.** Each immediate child directory that contains `.git` is a repo. Do not recurse. If there are none, say so and stop.
 
